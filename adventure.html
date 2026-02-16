@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The AI Initiative — A Decision Intelligence Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0d;
+    --paper: #f7f4ef;
+    --cream: #ede9e0;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --rust: #b85c38;
+    --forest: #2d4a3e;
+    --mist: #8a9ba8;
+    --convergence: #2d4a3e;
+    --capability: #4a2d3e;
+    --environment: #2d3e4a;
+    --optimal: #c9a84c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .site-header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--cream);
+    margin-bottom: 0;
+  }
+
+  .header-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .site-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 900;
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+
+  .site-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    color: #555;
+    line-height: 1.6;
+    max-width: 560px;
+  }
+
+  /* Progress bar */
+  .progress-container {
+    padding: 24px 0;
+    border-bottom: 1px solid var(--cream);
+  }
+
+  .progress-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-bottom: 10px;
+  }
+
+  .progress-steps {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .progress-step {
+    height: 4px;
+    flex: 1;
+    background: var(--cream);
+    border-radius: 2px;
+    transition: background 0.5s ease;
+  }
+
+  .progress-step.active { background: var(--gold); }
+  .progress-step.complete { background: var(--forest); }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cream);
+    flex-shrink: 0;
+    transition: background 0.5s ease;
+  }
+  .progress-dot.active { background: var(--gold); }
+  .progress-dot.complete { background: var(--forest); }
+
+  /* Main card */
+  .scene-card {
+    background: white;
+    border: 1px solid var(--cream);
+    border-radius: 2px;
+    padding: 48px;
+    margin: 32px 0;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.04), 0 0 0 1px rgba(201,168,76,0.08);
+    animation: fadeSlide 0.5s ease forwards;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .scene-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+  }
+
+  .tag-convergence { background: rgba(45,74,62,0.1); color: var(--convergence); }
+  .tag-capability { background: rgba(74,45,62,0.1); color: var(--capability); }
+  .tag-environment { background: rgba(45,62,74,0.1); color: var(--environment); }
+  .tag-intro { background: rgba(201,168,76,0.15); color: #7a5c1e; }
+
+  .scene-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--mist);
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+
+  .scene-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+
+  .scene-narrative {
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 32px;
+  }
+
+  .scene-narrative strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .decision-prompt {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-bottom: 16px;
+    padding-top: 8px;
+    border-top: 1px solid var(--cream);
+  }
+
+  /* Choices */
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .choice-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    background: var(--paper);
+    border: 1.5px solid var(--cream);
+    border-radius: 2px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .choice-btn:hover {
+    border-color: var(--gold);
+    background: white;
+    transform: translateX(4px);
+    box-shadow: -3px 0 0 var(--gold);
+  }
+
+  .choice-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+
+  .choice-text {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: #333;
+  }
+
+  /* Feedback panel */
+  .feedback-panel {
+    border-radius: 2px;
+    padding: 32px;
+    margin-top: 24px;
+    animation: fadeSlide 0.4s ease forwards;
+  }
+
+  .feedback-optimal {
+    background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(45,74,62,0.08));
+    border: 1.5px solid var(--gold);
+  }
+
+  .feedback-suboptimal {
+    background: rgba(184,92,56,0.06);
+    border: 1.5px solid rgba(184,92,56,0.3);
+  }
+
+  .feedback-end {
+    background: rgba(184,92,56,0.08);
+    border: 1.5px solid rgba(184,92,56,0.4);
+  }
+
+  .feedback-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .feedback-icon {
+    font-size: 20px;
+  }
+
+  .feedback-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .feedback-body {
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.75;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  .feedback-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .impact-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  .impact-velocity { background: rgba(45,74,62,0.1); color: var(--forest); }
+  .impact-quality { background: rgba(74,45,62,0.1); color: var(--capability); }
+  .impact-performance { background: rgba(45,62,74,0.1); color: var(--environment); }
+
+  .feedback-condition {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--mist);
+    font-style: italic;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 2px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .btn-primary:hover {
+    background: var(--forest);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--rust);
+    border: 1.5px solid var(--rust);
+  }
+
+  .btn-secondary:hover {
+    background: var(--rust);
+    color: white;
+  }
+
+  .btn-gold {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  .btn-gold:hover {
+    background: #b8922a;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(201,168,76,0.3);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  /* Intro screen */
+  .intro-section {
+    padding: 48px 0;
+  }
+
+  .intro-conditions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 32px 0;
+  }
+
+  @media (max-width: 600px) {
+    .intro-conditions { grid-template-columns: 1fr; }
+    .scene-card { padding: 28px 24px; }
+  }
+
+  .condition-card {
+    padding: 20px;
+    border: 1px solid var(--cream);
+    border-radius: 2px;
+    background: white;
+  }
+
+  .condition-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .condition-card-body {
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 1.6;
+    color: #555;
+  }
+
+  .condition-convergence { border-top: 3px solid var(--convergence); }
+  .condition-capability { border-top: 3px solid var(--capability); }
+  .condition-environment { border-top: 3px solid var(--environment); }
+
+  /* End screens */
+  .end-premature {
+    text-align: center;
+    padding: 48px 32px;
+  }
+
+  .end-optimal {
+    padding: 48px 32px;
+  }
+
+  .end-icon {
+    font-size: 48px;
+    margin-bottom: 24px;
+  }
+
+  .end-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(24px, 5vw, 36px);
+    font-weight: 900;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .end-body {
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 24px;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .lesson-box {
+    background: var(--paper);
+    border: 1px solid var(--cream);
+    border-left: 4px solid var(--gold);
+    padding: 20px 24px;
+    margin: 24px 0;
+    text-align: left;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .lesson-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .lesson-text {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: #333;
+  }
+
+  .scorecard {
+    background: white;
+    border: 1px solid var(--cream);
+    border-radius: 2px;
+    padding: 24px;
+    margin: 24px 0;
+    text-align: left;
+  }
+
+  .scorecard-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+
+  .scorecard-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--cream);
+    font-size: 14px;
+  }
+
+  .scorecard-row:last-child { border-bottom: none; }
+
+  .scorecard-label { font-weight: 400; color: #555; }
+  .scorecard-value { font-weight: 600; color: var(--ink); }
+
+  .badge-optimal { color: var(--forest); }
+  .badge-partial { color: #b8922a; }
+  .badge-missed { color: var(--rust); }
+
+  /* Hidden */
+  .hidden { display: none; }
+
+  footer {
+    padding: 32px 0 48px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--mist);
+    border-top: 1px solid var(--cream);
+    margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="site-header">
+    <div class="header-label">Decision Intelligence Series</div>
+    <h1 class="site-title">The AI Initiative</h1>
+    <p class="site-subtitle">A choose-your-own-adventure journey through the decisions that will define your organization's AI future — and reveal the maturity of your decision-making foundation.</p>
+  </header>
+
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-label">Your Journey</div>
+    <div class="progress-steps" id="progressSteps">
+      <div class="progress-dot" id="dot0"></div>
+      <div class="progress-step" id="step1"></div>
+      <div class="progress-dot" id="dot1"></div>
+      <div class="progress-step" id="step2"></div>
+      <div class="progress-dot" id="dot2"></div>
+      <div class="progress-step" id="step3"></div>
+      <div class="progress-dot" id="dot3"></div>
+      <div class="progress-step" id="step4"></div>
+      <div class="progress-dot" id="dot4"></div>
+    </div>
+  </div>
+
+  <main id="mainContent"></main>
+
+  <footer>
+    Decision Intelligence Framework · All scenarios are illustrative and designed for learning purposes.
+  </footer>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const state = {
+  scene: 'intro',
+  choices: [],        // tracks A/B/C per scenario
+  feedbackShown: [],  // which feedbacks have been shown
+  currentFeedback: null,
+  attempts: 0
+};
+
+// ─── CONTENT ─────────────────────────────────────────────────────────────────
+const scenarios = {
+
+  intro: {
+    render() {
+      return `
+        <div class="intro-section">
+          <div class="scene-card">
+            <div class="scene-tag tag-intro">Briefing</div>
+            <h2 class="scene-title">Your mandate has just arrived.</h2>
+            <div class="scene-narrative">
+              <p>The board meeting ended an hour ago. The message from your CEO is clear: <strong>"We need to move on AI. Our competitors aren't waiting — and neither should we."</strong></p>
+              <br>
+              <p>You've been tasked with leading your organization's first enterprise-wide AI initiative. The pressure is real. The timeline is aggressive. And somewhere beneath the excitement in the room, you sensed something else — <strong>no one fully agreed on what "moving on AI" actually means.</strong></p>
+              <br>
+              <p>Over the next four critical decision points, you will face the choices that will define not just this initiative — but your organization's long-term relationship with AI. Each decision will be measured against three conditions:</p>
+            </div>
+
+            <div class="intro-conditions">
+              <div class="condition-card condition-convergence">
+                <div class="condition-card-title" style="color:var(--convergence)">Convergence</div>
+                <div class="condition-card-body">Shared vision, common language, aligned goals — the foundation of decision velocity.</div>
+              </div>
+              <div class="condition-card condition-capability">
+                <div class="condition-card-title" style="color:var(--capability)">Capability</div>
+                <div class="condition-card-body">System readiness (technology, data, architecture) and structural readiness (people, processes, governance).</div>
+              </div>
+              <div class="condition-card condition-environment">
+                <div class="condition-card-title" style="color:var(--environment)">Environment</div>
+                <div class="condition-card-body">Cross-functional dynamics, constraints, and systems thinking needed for quality decisions under pressure.</div>
+              </div>
+            </div>
+
+            <div class="scene-narrative">
+              <p>There is no perfect leader. But there <em>is</em> a most intelligent decision. Choose wisely — and if you reach a dead end, come back and try again. That's how decision intelligence is built.</p>
+            </div>
+
+            <button class="btn btn-gold" onclick="goTo('s1')">Begin the Initiative →</button>
+          </div>
+        </div>`;
+    }
+  },
+
+  s1: {
+    tag: 'tag-convergence',
+    tagLabel: 'Scenario 1 of 4 · Convergence',
+    sceneNumber: 'The Mandate',
+    title: 'Everyone agrees you should "do AI." But do they agree on what that means?',
+    narrative: `<p>Within 48 hours of your mandate, you've received three different emails. The CFO wants AI to reduce operational costs by 20%. The Chief People Officer sees it as a talent and learning initiative. The Head of Operations believes it's about automating the supply chain. Your CTO is already scoping platforms.</p>
+    <br>
+    <p>You haven't been given a defined scope, a shared definition, or clarity on which decisions are yours to make versus which require board approval. <strong>The organization is pulling in three different directions — and no one has noticed yet.</strong></p>
+    <br>
+    <p>Before the initiative can move, you need to establish what AI actually means for your organization. How do you proceed?</p>`,
+    decisionPrompt: 'What is your first move?',
+    choices: [
+      {
+        letter: 'A',
+        text: 'Call an urgent cross-functional workshop to co-create a shared AI vision, define what decisions are negotiable vs. non-negotiable, and establish a common language before any scoping begins.',
+        feedback: {
+          type: 'optimal',
+          title: 'A deliberate beginning.',
+          body: 'You chose convergence before momentum. By creating space for a shared vision and explicit alignment on decision authority, you are building the foundation that will give this initiative its best chance of success. This is not a slow move — it is the fastest path to sustainable velocity. Organizations that skip this step often move quickly into expensive confusion.',
+          condition: 'Convergence — You prioritized shared vision, common language, and clarity on negotiable vs. non-negotiable decisions.',
+          velocity: '↑ Future velocity',
+          quality: '↑ Decision quality',
+          performance: '↑ Initiative performance',
+          velocityType: 'impact-velocity',
+          qualityType: 'impact-quality',
+          performanceType: 'impact-performance',
+          next: 's2'
+        }
+      },
+      {
+        letter: 'B',
+        text: 'Send a brief survey to all leaders asking them to rank their AI priorities and consolidate the results into a working definition to present at the next leadership meeting.',
+        feedback: {
+          type: 'suboptimal',
+          title: 'Well-intentioned, but fragmented.',
+          body: 'A survey captures individual preferences — it does not create shared meaning. You will receive a list of competing priorities that reflects each leader\'s department view, not a coherent organizational vision. More importantly, ranking priorities is not the same as converging on them. You risk creating the illusion of alignment while the underlying tensions remain unresolved, which will surface at the worst possible moment.',
+          condition: 'Convergence — This approach bypasses genuine dialogue, risks producing false consensus, and delays real alignment.',
+          velocity: '↓ False velocity',
+          quality: '↓ Surface-level quality',
+          performance: '↓ Fragile performance',
+          velocityType: 'impact-velocity',
+          qualityType: 'impact-quality',
+          performanceType: 'impact-performance',
+          next: 's2'
+        }
+      },
+      {
+        letter: 'C',
+        text: 'Move directly to vendor evaluation. Align the organization around a concrete platform choice — seeing something real will force clarity on what you\'re actually trying to do.',
+        feedback: {
+          type: 'suboptimal',
+          title: 'The cart before the horse.',
+          body: 'Choosing technology before strategy is one of the most common and costly mistakes in digital initiatives. A vendor selection made in the absence of a shared vision will anchor your organization to a platform that may not serve the purpose you eventually agree on. You will also be negotiating from a position of confusion — and vendors are very good at filling undefined space with their own narrative.',
+          condition: 'Convergence — Strategy must precede tool selection. Without a shared vision, you are solving for the wrong problem.',
+          velocity: '↓ Apparent speed, real delay',
+          quality: '↓ Misaligned decisions',
+          performance: '↓ Expensive course corrections ahead',
+          velocityType: 'impact-velocity',
+          qualityType: 'impact-quality',
+          performanceType: 'impact-performance',
+          next: 's2'
+        }
+      }
+    ]
+  },
+
+  s2: {
+    tag: 'tag-capability',
+    tagLabel: 'Scenario 2 of 4 · Capability',
+    sceneNumber: 'The Assessment',
+    title: 'The vision is taking shape. Now you need to know if you\'re actually ready.',
+    narrative: `<p>The cross-functional workshop produced something valuable: a working definition of what AI means for your organization, and clarity that this is a <strong>capability-building initiative</strong>, not just a technology project. The board has approved moving to the next phase.</p>
+    <br>
+    <p>But as you begin to dig deeper, you start to uncover uncomfortable truths. Your data is fragmented across legacy systems, with no clear ownership and limited traceability. Your enterprise architecture has never been formally documented. Several departments have already purchased AI tools independently, without governance. And when you ask leaders to rate their team's data literacy, the responses are vague.</p>
+    <br>
+    <p><strong>The gap between where you are and where you need to be is wider than anyone publicly acknowledged in the workshop.</strong> You need to make a decision about how to handle this.</p>`,
+    decisionPrompt: 'How do you proceed?',
+    choices: [
+      {
+        letter: 'A',
+        text: 'Commission a formal readiness assessment covering enterprise architecture, data governance, organizational structure, and DI maturity — and present the findings transparently to leadership before proceeding.',
+        feedback: {
+          type: 'optimal',
+          title: 'Courageous transparency.',
+          body: 'This is the decision that separates leaders who build things that last from those who launch things that stall. By creating a structured, evidence-based picture of your system and structural readiness, you are giving leadership the information they need to make a genuinely intelligent decision. This is decision intelligence in practice: not rushing to action, but ensuring the quality of information that precedes action.',
+          condition: 'Capability — You assessed system readiness (architecture, data, technology) and structural readiness (people, processes, governance) before committing.',
+          velocity: '↑ Informed velocity',
+          quality: '↑ Highest decision quality',
+          performance: '↑ Sustainable performance',
+          velocityType: 'impact-velocity',
+          qualityType: 'impact-quality',
+          performanceType: 'impact-performance',
+          next: 's3'
+        }
+      },
+      {
+        letter: 'B',
+        text: 'Acknowledge the gaps but proceed in parallel — launch a pilot with one department that seems most ready, while the broader readiness work happens in the background.',
+        feedback: {
+          type: 'suboptimal',
+          title: 'Partial progress, incomplete picture.',
+          body: 'A parallel track approach can appear pragmatic, but it introduces risk. The pilot will generate learnings that may conflict with the direction your readiness assessment points to. More critically, a "most ready" department may not represent the cross-functional dependencies that AI initiatives require. You risk building momentum in one direction while the foundations in another direction are still unexamined.',
+          condition: 'Capability — Partial capability assessment risks embedding structural problems into early momentum, making them harder to unwind.',
+          velocity: '→ Mixed velocity signals',
+          quality: '↓ Incomplete quality picture',
+          performance: '→ Uneven performance across functions',
+          velocityType: 'impact-velocity',
+          qualityType: 'impact-quality',
+          performanceType: 'impact-performance',
+          next: 's3'
+        }
+      },
+      {
+        letter: 'C',
+        text: 'Downplay the gaps in your report to leadership to maintain momentum and confidence. You\'ll address them as they arise during implementation.',
+        feedback: {
+          type: 'end',
+          title: 'The initiative unravels.',
+          body: 'By choosing to obscure known risks, you have made a decision that will define your credibility as a leader. Six months into implementation, the data governance gaps cause a critical failure in the AI model\'s outputs. An audit reveals that leadership was not informed of the known risks at the assessment stage. The initiative is paused — but now under very different circumstances than if you had raised the issues proactively. The cost, in resources, trust, and time, is significantly higher than it would have been.',
+          condition: 'Capability — Information discipline and ethical oversight are non-negotiable components of decision intelligence. Concealing known risks is a failure of both.',
+          isEnd: true,
+          endTitle: 'The Initiative Collapses',
+          lesson: 'Decision intelligence requires information discipline — the courage to surface what is true, even when it is uncomfortable. Hiding known risks does not make them disappear; it makes their eventual impact far more damaging. Ethical oversight begins with the quality of information you allow leadership to work with.'
+        }
+      }
+    ]
+  },
+
+  s3: {
+    tag: 'tag-environment',
+    tagLabel: 'Scenario 3 of 4 · Environment',
+    sceneNumber: 'The Resistance',
+    title: 'The environment is pushing back. Constraints are closing in from every direction.',
+    narrative: `<p>The readiness assessment is complete and on the table. The findings confirm what you suspected: the organization is <strong>not ready</strong> to deploy enterprise AI at scale. Data governance is immature, cross-functional processes are siloed, and there is no shared framework for ethical oversight of AI outputs.</p>
+    <br>
+    <p>But the external environment is creating pressure. A competitor has just announced an AI-powered product that is getting significant media attention. The board is asking pointed questions. Three of your most senior leaders are openly pushing for acceleration, arguing that <strong>"done is better than perfect."</strong> One of them has begun lobbying others directly.</p>
+    <br>
+    <p>Regulatory discussions around AI governance are also surfacing in your industry. And your internal change management capacity is already stretched from a previous transformation that has not yet fully landed.</p>
+    <br>
+    <p><strong>The environment is applying pressure from multiple directions simultaneously.</strong> How do you respond?</p>`,
+    decisionPrompt: 'What is your response?',
+    choices: [
+      {
+        letter: 'A',
+        text: 'Accelerate to match the competitor\'s move. Reframe the readiness gaps as "things we\'ll fix along the way" and present an aggressive timeline to the board to restore confidence.',
+        feedback: {
+          type: 'end',
+          title: 'The initiative overextends — and breaks.',
+          body: 'Competitive pressure is real, but it is not a substitute for strategic judgment. By accelerating into known gaps, you have allowed the external environment to override your internal intelligence. Twelve months in, the AI system produces outputs that cannot be traced to reliable data sources. A regulatory inquiry follows. The competitor\'s product, it turns out, was a limited pilot — not a full deployment. The board\'s confidence, which you sought to protect, is now more damaged than if you had presented a disciplined path forward.',
+          condition: 'Environment — Systems thinking requires distinguishing between signals that matter and noise that creates urgency without substance. Competitive reaction without strategic grounding is environmental reactivity, not leadership.',
+          isEnd: true,
+          endTitle: 'A Costly Overextension',
+          lesson: 'The environment will always generate pressure. Decision intelligence means understanding which constraints are genuinely binding and which are perceived threats amplified by anxiety. A competitor announcement is not evidence that their approach is right — or that rushing yours will produce a better outcome.'
+        }
+      },
+      {
+        letter: 'B',
+        text: 'Facilitate a structured conversation with the full leadership team — presenting the readiness findings, the external pressures, and the regulatory signals together — and build a shared understanding of the real constraints before deciding on pace.',
+        feedback: {
+          type: 'optimal',
+          title: 'Systems thinking in action.',
+          body: 'By bringing the full picture — internal readiness, competitive environment, and regulatory landscape — into a single leadership conversation, you are refusing to let any single variable drive the decision. This is cross-functional, systems-level thinking: understanding how constraints interact, how external signals can distort internal judgment, and how a well-structured conversation can transform reactive anxiety into deliberate choice. The leaders pushing for acceleration are heard, but within a context that gives their position its proper weight.',
+          condition: 'Environment — You applied systems thinking, managed cross-functional dynamics, and created the conditions for a quality decision under genuine external pressure.',
+          velocity: '↑ Grounded velocity',
+          quality: '↑ Context-rich decision quality',
+          performance: '↑ Resilient performance',
+          velocityType: 'impact-velocity',
+          qualityType: 'impact-quality',
+          performanceType: 'impact-performance',
+          next: 's4'
+        }
+      },
+      {
+        letter: 'C',
+        text: 'Focus on managing the internal politics — give the leaders pushing for acceleration a visible role in the initiative to neutralize their resistance, while quietly slowing the timeline.',
+        feedback: {
+          type: 'suboptimal',
+          title: 'Managed, but not resolved.',
+          body: 'Political navigation is a real leadership skill — but when used as a substitute for honest dialogue, it creates a different kind of fragility. The leaders you have co-opted now have visibility and influence over an initiative whose true direction they do not understand. You have also created an implicit expectation of acceleration that will be difficult to walk back. The resistance has been suppressed, not converted.',
+          condition: 'Environment — Cross-functional dynamics require transparent engagement, not political containment. Structural tensions left unaddressed resurface — usually at higher cost.',
+          velocity: '→ Short-term stability',
+          quality: '↓ Compromised transparency',
+          performance: '↓ Deferred conflict, higher cost',
+          velocityType: 'impact-velocity',
+          qualityType: 'impact-quality',
+          performanceType: 'impact-performance',
+          next: 's4'
+        }
+      }
+    ]
+  },
+
+  s4: {
+    tag: 'tag-convergence',
+    tagLabel: 'Scenario 4 of 4 · The Reckoning',
+    sceneNumber: 'The Decision',
+    title: 'Everything you\'ve learned has brought you here. Now comes the hardest call.',
+    narrative: `<p>The leadership conversation was difficult — and clarifying. With the full picture on the table, something shifted. The leaders who had been pushing hardest for acceleration became notably quieter when the regulatory signals were laid out alongside the readiness gaps. The CFO asked a question no one had asked before: <strong>"If we launch now and it fails, what does that cost us compared to getting it right?"</strong></p>
+    <br>
+    <p>The room held the question. No one had modeled it.</p>
+    <br>
+    <p>You now have a rare window of organizational openness. The readiness assessment gives you the evidence. The leadership team, for the first time, is genuinely listening. The board meeting is in two weeks.</p>
+    <br>
+    <p><strong>This is your moment. What do you recommend?</strong></p>`,
+    decisionPrompt: 'What is your recommendation to leadership?',
+    choices: [
+      {
+        letter: 'A',
+        text: 'Recommend a phased launch — start with two departments, build momentum, and use early wins to justify the full investment. Frame it as "learning by doing."',
+        feedback: {
+          type: 'end',
+          title: 'A partial solution to a foundational problem.',
+          body: 'A phased launch is not inherently wrong — but in this context, it allows you to avoid the deeper recommendation that the evidence demands. The foundational gaps in data governance, enterprise architecture, and DI maturity exist across the organization, not just in the unselected departments. A two-department pilot built on a fragile foundation will produce results that cannot be reliably scaled. You will spend the next 18 months explaining why the pilot\'s results didn\'t translate — and the organization\'s AI credibility will erode with each explanation.',
+          condition: 'Convergence + Capability — A phased launch without foundational readiness is a delay tactic, not a strategy. It avoids the real recommendation the data supports.',
+          isEnd: true,
+          endTitle: 'A Pilot Without a Foundation',
+          lesson: 'Phased approaches are powerful when the foundation is sound. When the foundation is fragile, phasing distributes the problem rather than solving it. The most courageous and intelligent recommendation was not about pace — it was about prerequisites.'
+        }
+      },
+      {
+        letter: 'B',
+        text: 'Recommend proceeding at full speed, but include a risk register and a dedicated governance committee to manage issues as they arise.',
+        feedback: {
+          type: 'end',
+          title: 'Governance as a substitute for readiness.',
+          body: 'A risk register and governance committee are valuable — when the underlying system is capable of supporting them. In this case, you are asking a governance structure to carry the weight of gaps that the organization\'s own assessment identified as foundational. The committee will spend its time in reactive mode, managing consequences of decisions that should not have been made yet. This is the organizational equivalent of installing a fire brigade rather than addressing the conditions that cause fires.',
+          condition: 'Capability + Environment — Governance structures require capable foundations to function. Without system and structural readiness, they become crisis management in slow motion.',
+          isEnd: true,
+          endTitle: 'Governance Without Foundations',
+          lesson: 'Oversight mechanisms are most powerful when they are protecting something that is working — not compensating for something that is not yet ready. Decision intelligence means knowing the difference.'
+        }
+      },
+      {
+        letter: 'C',
+        text: 'Recommend pausing the AI deployment and investing the next 12–18 months in building the foundations: data governance, enterprise architecture clarity, cross-functional DI capability, and ethical oversight frameworks — with a clear roadmap back to AI deployment once those conditions are met.',
+        feedback: {
+          type: 'optimal',
+          title: 'The most intelligent decision in the room.',
+          body: 'This is not a decision to stop. It is a decision to build what will make everything else possible. You are recommending something rare and genuinely difficult: the discipline to pause when momentum is high, because the evidence demands it. This recommendation reflects convergence — you have a shared understanding of what AI truly requires. It reflects capability — you have an honest assessment of where the gaps are and a plan to close them. And it reflects environmental intelligence — you have placed competitive pressure, regulatory signals, and internal readiness in their proper relationship to each other.',
+          condition: 'Convergence + Capability + Environment — All three conditions were assessed, respected, and integrated into a single, courageous recommendation.',
+          isEnd: false,
+          isOptimalEnd: true
+        }
+      }
+    ]
+  }
+};
+
+// ─── RENDER ENGINE ────────────────────────────────────────────────────────────
+function updateProgress(sceneId) {
+  const steps = ['intro', 's1', 's2', 's3', 's4'];
+  const idx = steps.indexOf(sceneId);
+  for (let i = 0; i <= 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    if (dot) {
+      dot.className = 'progress-dot' + (i < idx ? ' complete' : i === idx ? ' active' : '');
+    }
+  }
+  for (let i = 1; i <= 4; i++) {
+    const step = document.getElementById('step' + i);
+    if (step) {
+      step.className = 'progress-step' + (i < idx ? ' complete' : i === idx ? ' active' : '');
+    }
+  }
+}
+
+function goTo(sceneId) {
+  state.scene = sceneId;
+  state.currentFeedback = null;
+  updateProgress(sceneId);
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '';
+
+  if (sceneId === 'intro') {
+    main.innerHTML = scenarios.intro.render();
+    return;
+  }
+
+  const scene = scenarios[sceneId];
+  if (!scene) return;
+
+  const card = document.createElement('div');
+  card.className = 'scene-card';
+  card.id = 'sceneCard';
+  card.innerHTML = `
+    <div class="scene-tag ${scene.tag}">${scene.tagLabel}</div>
+    <div class="scene-number">${scene.sceneNumber}</div>
+    <h2 class="scene-title">${scene.title}</h2>
+    <div class="scene-narrative">${scene.narrative}</div>
+    <div class="decision-prompt">${scene.decisionPrompt}</div>
+    <div class="choices" id="choices">
+      ${scene.choices.map((c, i) => `
+        <button class="choice-btn" onclick="selectChoice('${sceneId}', ${i})">
+          <span class="choice-letter">${c.letter}</span>
+          <span class="choice-text">${c.text}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div id="feedbackArea"></div>
+  `;
+  main.appendChild(card);
+}
+
+function selectChoice(sceneId, idx) {
+  const scene = scenarios[sceneId];
+  const choice = scene.choices[idx];
+  const fb = choice.feedback;
+
+  // Disable all choice buttons
+  document.querySelectorAll('.choice-btn').forEach((btn, i) => {
+    btn.style.opacity = i === idx ? '1' : '0.45';
+    btn.style.pointerEvents = 'none';
+    if (i === idx) btn.style.borderColor = 'var(--gold)';
+  });
+
+  const area = document.getElementById('feedbackArea');
+
+  if (fb.isOptimalEnd) {
+    renderOptimalEnd(area);
+    return;
+  }
+
+  if (fb.isEnd) {
+    renderPrematureEnd(area, fb);
+    return;
+  }
+
+  // Regular feedback
+  const panelClass = fb.type === 'optimal' ? 'feedback-optimal' : 'feedback-suboptimal';
+  const icon = fb.type === 'optimal' ? '✦' : '◈';
+
+  area.innerHTML = `
+    <div class="feedback-panel ${panelClass}">
+      <div class="feedback-header">
+        <span class="feedback-icon">${icon}</span>
+        <span class="feedback-title">${fb.title}</span>
+      </div>
+      <div class="feedback-body">${fb.body}</div>
+      <div class="feedback-tags">
+        <span class="impact-tag ${fb.velocityType}">${fb.velocity}</span>
+        <span class="impact-tag ${fb.qualityType}">${fb.quality}</span>
+        <span class="impact-tag ${fb.performanceType}">${fb.performance}</span>
+      </div>
+      <div class="feedback-condition"><strong>Condition tested:</strong> ${fb.condition}</div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="goTo('${fb.next}')">Continue to Next Scenario →</button>
+      </div>
+    </div>
+  `;
+
+  area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderPrematureEnd(area, fb) {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="scene-card">
+      <div class="end-premature">
+        <div class="end-icon">◈</div>
+        <h2 class="end-title" style="color:var(--rust)">${fb.endTitle}</h2>
+        <p class="end-body">${fb.body}</p>
+        <div class="lesson-box">
+          <div class="lesson-label">The DI Lesson</div>
+          <div class="lesson-text">${fb.lesson}</div>
+        </div>
+        <div class="feedback-condition" style="margin-bottom:24px"><strong>Condition tested:</strong> ${fb.condition}</div>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn btn-secondary" onclick="retryFrom()">↩ Try Again</button>
+          <button class="btn btn-primary" onclick="goTo('intro')">↺ Start Over</button>
+        </div>
+      </div>
+    </div>
+  `;
+  updateProgress('end');
+}
+
+function renderOptimalEnd(area) {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <div class="scene-card">
+      <div class="end-optimal">
+        <div class="scene-tag tag-intro" style="margin-bottom:24px">Optimal Outcome Reached</div>
+        <div class="end-icon">✦</div>
+        <h2 class="end-title" style="color:var(--forest)">You made the most intelligent decision in the room.</h2>
+        
+        <p class="end-body">By recommending a pause to build the right foundations, you demonstrated what decision intelligence truly looks like under pressure: not speed, not momentum, not competitive reaction — but the disciplined integration of convergence, capability, and environmental awareness into a single courageous recommendation.</p>
+
+        <div class="lesson-box">
+          <div class="lesson-label">What made this the optimal decision</div>
+          <div class="lesson-text">
+            You confirmed what the organization means by AI before scoping anything. You assessed system readiness (data governance, enterprise architecture, technology) and structural readiness (people, processes, cross-functional maturity) honestly. You placed competitive pressure and regulatory signals in their proper context — as inputs to a decision, not drivers of it. And you recommended investing in DI capability — critical thinking, ethical oversight, information discipline, and adaptive judgment — as prerequisites to deploying AI responsibly. <br><br>
+            <strong>The pause is not a failure. It is the foundation of everything that will actually work.</strong>
+          </div>
+        </div>
+
+        <div class="scorecard">
+          <div class="scorecard-title">Your Decision Intelligence Profile</div>
+          <div class="scorecard-row">
+            <span class="scorecard-label">Convergence</span>
+            <span class="scorecard-value badge-optimal">Established ✦</span>
+          </div>
+          <div class="scorecard-row">
+            <span class="scorecard-label">Capability Assessment</span>
+            <span class="scorecard-value badge-optimal">Complete ✦</span>
+          </div>
+          <div class="scorecard-row">
+            <span class="scorecard-label">Environmental Awareness</span>
+            <span class="scorecard-value badge-optimal">Applied ✦</span>
+          </div>
+          <div class="scorecard-row">
+            <span class="scorecard-label">Information Discipline</span>
+            <span class="scorecard-value badge-optimal">Demonstrated ✦</span>
+          </div>
+          <div class="scorecard-row">
+            <span class="scorecard-label">Ethical Oversight</span>
+            <span class="scorecard-value badge-optimal">Prioritized ✦</span>
+          </div>
+          <div class="scorecard-row">
+            <span class="scorecard-label">Decision Velocity</span>
+            <span class="scorecard-value badge-optimal">Optimized for sustainability ✦</span>
+          </div>
+        </div>
+
+        <p class="end-body" style="font-style:italic; color: var(--mist); font-size:14px;">The organizations that will lead in AI are not those who move fastest. They are those who build the decision-making foundation that makes every subsequent move count.</p>
+
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="goTo('intro')">↺ Play Again</button>
+        </div>
+      </div>
+    </div>
+  `;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function retryFrom() {
+  // Go back to the current scene
+  goTo(state.scene);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+goTo('intro');
+</script>
+</body>
+</html>

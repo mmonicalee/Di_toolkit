@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Decision Intelligence Capability Diagnostic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@300;400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy:   #0b0f1a;
+    --navy2:  #111827;
+    --navy3:  #1a2338;
+    --gold:   #c9a84c;
+    --gold2:  #e2c47a;
+    --white:  #ffffff;
+    --white2: #dde4f0;
+
+    /* Traffic-light — WCAG AA on dark backgrounds */
+    --green:     #2ecc71;
+    --green-bg:  rgba(46,204,113,0.12);
+    --green-bdr: rgba(46,204,113,0.35);
+    --orange:    #f39c12;
+    --orange-bg: rgba(243,156,18,0.12);
+    --orange-bdr:rgba(243,156,18,0.35);
+    --red:       #e74c3c;
+    --red-bg:    rgba(231,76,60,0.12);
+    --red-bdr:   rgba(231,76,60,0.35);
+
+    --radius: 4px;
+    --ease:   cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(201,168,76,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(46,204,113,0.03) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+  }
+
+  #app {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0 1.25rem 5rem;
+  }
+
+  .screen { width: 100%; max-width: 780px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-8px); }
+  }
+  .fade-enter { animation: fadeUp 0.45s var(--ease) both; }
+  .fade-exit  { animation: fadeOut 0.18s ease forwards; }
+
+  /* ─── TOP BAR ────────────── */
+  .top-bar {
+    width: 100%; max-width: 780px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.75rem 0 1.25rem;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+    margin-bottom: 2.5rem;
+  }
+  .logo-mark { display: flex; align-items: center; gap: 0.6rem; }
+  .logo-icon {
+    width: 30px; height: 30px; border: 1px solid var(--gold);
+    border-radius: 2px; display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .logo-icon::before { content:''; position:absolute; inset:4px; border:1px solid rgba(201,168,76,0.4); border-radius:1px; }
+  .logo-icon::after  { content:''; position:absolute; width:7px; height:7px; background:var(--gold); border-radius:50%; }
+  .logo-text { font-family:'Roboto Mono',monospace; font-size:0.65rem; font-weight:300; letter-spacing:0.16em; color:var(--white2); text-transform:uppercase; }
+  .top-tag   { font-family:'Roboto Mono',monospace; font-size:0.6rem; letter-spacing:0.13em; color:var(--gold); text-transform:uppercase; border:1px solid rgba(201,168,76,0.3); padding:0.27rem 0.65rem; border-radius:2px; }
+
+  /* ─── EYEBROW ────────────── */
+  .eyebrow {
+    font-family:'Roboto Mono',monospace; font-size:0.65rem; letter-spacing:0.18em;
+    color:var(--gold); text-transform:uppercase; margin-bottom:1.2rem;
+    display:flex; align-items:center; gap:0.65rem;
+  }
+  .eyebrow::before { content:''; display:inline-block; width:20px; height:1px; background:var(--gold); flex-shrink:0; }
+
+  /* ─── INTRO ──────────────── */
+  .intro-title {
+    font-size: clamp(1.9rem, 5.5vw, 3rem);
+    font-weight: 300; line-height: 1.18; color: var(--white); letter-spacing: -0.01em; margin-bottom: 0.4rem;
+  }
+  .intro-title em { font-style: italic; color: var(--gold2); }
+  .intro-divider { width: 40px; height: 1px; background: linear-gradient(90deg,var(--gold),transparent); margin: 1.6rem 0; }
+  .intro-body { font-size: 16px; line-height: 1.8; color: var(--white2); max-width: 560px; margin-bottom: 1.5rem; }
+  .beta-note {
+    font-size: 14px; line-height: 1.75; color: rgba(255,255,255,0.45);
+    border-left: 2px solid rgba(243,156,18,0.4); padding-left: 1rem;
+    margin-bottom: 2.25rem; max-width: 560px;
+  }
+
+  .domain-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:2.25rem; }
+  .domain-card {
+    border:1px solid rgba(201,168,76,0.14); border-radius:var(--radius);
+    padding:0.9rem 1.1rem; background:rgba(17,24,39,0.5); transition:border-color 0.25s;
+  }
+  .domain-card:hover { border-color:rgba(201,168,76,0.3); }
+  .domain-card-num  { font-family:'Roboto Mono',monospace; font-size:0.55rem; letter-spacing:0.18em; color:var(--gold); margin-bottom:0.3rem; }
+  .domain-card-name { font-size:14px; font-weight:500; color:var(--white); margin-bottom:0.12rem; }
+  .domain-card-anchor { font-size:13px; color:rgba(255,255,255,0.38); }
+
+  .meta-grid { display:flex; gap:2rem; margin-bottom:2.25rem; flex-wrap:wrap; }
+  .meta-val   { font-size:2rem; font-weight:300; color:var(--gold2); line-height:1; }
+  .meta-label { font-size:12px; color:rgba(255,255,255,0.38); letter-spacing:0.1em; text-transform:uppercase; margin-top:0.18rem; }
+
+  .btn-primary {
+    display:inline-flex; align-items:center; gap:0.7rem;
+    background:var(--gold); color:var(--navy); border:none;
+    padding:0.95rem 1.9rem;
+    font-family:'Roboto',sans-serif; font-size:14px; font-weight:500;
+    letter-spacing:0.12em; text-transform:uppercase; border-radius:var(--radius);
+    cursor:pointer; transition:background 0.2s, transform 0.2s;
+  }
+  .btn-primary:hover { background:var(--gold2); transform:translateY(-1px); }
+  .arrow { transition:transform 0.2s; }
+  .btn-primary:hover .arrow { transform:translateX(3px); }
+
+  /* ─── PROGRESS ───────────── */
+  .progress-wrap { width:100%; margin-bottom:2.75rem; }
+  .progress-meta { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.55rem; }
+  .progress-label { font-family:'Roboto Mono',monospace; font-size:12px; letter-spacing:0.13em; color:rgba(255,255,255,0.35); text-transform:uppercase; }
+  .progress-counter { font-size:16px; color:var(--gold2); font-weight:300; }
+  .progress-track { width:100%; height:2px; background:rgba(255,255,255,0.07); border-radius:2px; overflow:hidden; }
+  .progress-fill  { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold2)); border-radius:2px; transition:width 0.5s var(--ease); }
+  .progress-segs  { display:flex; gap:3px; margin-top:5px; }
+  .seg { flex:1; height:2px; border-radius:1px; background:rgba(255,255,255,0.06); transition:background 0.3s; }
+  .seg.filled { background:rgba(201,168,76,0.28); }
+  .seg.active  { background:var(--gold); }
+
+  /* ─── QUESTION ───────────── */
+  .q-domain-label {
+    font-family:'Roboto Mono',monospace; font-size:12px; letter-spacing:0.17em;
+    text-transform:uppercase; color:var(--gold); display:flex; align-items:center; gap:0.5rem; margin-bottom:1.6rem;
+  }
+  .q-domain-dot { width:5px; height:5px; border-radius:50%; }
+
+  .q-text {
+    font-family:'Roboto',sans-serif;
+    font-size:clamp(1.2rem,3.2vw,1.55rem);
+    font-weight:300; line-height:1.5; color:var(--white); margin-bottom:2.25rem; min-height:72px;
+  }
+
+  /* ─── SCALE ──────────────── */
+  .scale-wrap { margin-bottom:2.25rem; }
+  .scale-outer-labels {
+    display:flex; justify-content:space-between; margin-bottom:0.9rem;
+    font-size:13px; color:rgba(255,255,255,0.4); font-weight:400;
+  }
+  .scale-options { display:flex; gap:0.5rem; }
+
+  .scale-btn {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:0;
+    background:rgba(17,24,39,0.7); border:1px solid rgba(255,255,255,0.1);
+    border-radius:var(--radius); padding:1rem 0.2rem 0.85rem;
+    cursor:pointer; transition:all 0.22s; color:rgba(255,255,255,0.45);
+    position:relative; overflow:hidden;
+  }
+  .scale-btn::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:var(--gold); transform:scaleX(0); transition:transform 0.22s;
+  }
+  .scale-btn:hover { border-color:rgba(201,168,76,0.45); color:var(--white); background:rgba(201,168,76,0.07); }
+  .scale-btn:hover::before { transform:scaleX(1); }
+  .scale-btn.selected { border-color:var(--gold); background:rgba(201,168,76,0.13); color:var(--white); }
+  .scale-btn.selected::before { transform:scaleX(1); }
+
+  @keyframes pulse {
+    0%   { box-shadow:0 0 0 0 rgba(201,168,76,0.45); }
+    70%  { box-shadow:0 0 0 9px rgba(201,168,76,0); }
+    100% { box-shadow:0 0 0 0 rgba(201,168,76,0); }
+  }
+  .scale-btn.pulsing { animation:pulse 0.5s ease; }
+
+  .scale-num { font-size:1.85rem; font-weight:300; line-height:1; }
+  .scale-btn.selected .scale-num { color:var(--gold2); font-weight:400; }
+
+  /* ─── NAV ────────────────── */
+  .q-nav { display:flex; justify-content:space-between; align-items:center; }
+  .btn-ghost {
+    background:none; border:1px solid rgba(255,255,255,0.12); color:rgba(255,255,255,0.45);
+    padding:0.72rem 1.35rem; font-family:'Roboto',sans-serif; font-size:13px;
+    font-weight:400; letter-spacing:0.1em; text-transform:uppercase;
+    border-radius:var(--radius); cursor:pointer; transition:all 0.2s;
+  }
+  .btn-ghost:hover { border-color:rgba(255,255,255,0.3); color:var(--white); }
+  .btn-ghost:disabled { opacity:0.22; cursor:not-allowed; }
+  .btn-next {
+    background:none; border:1px solid rgba(201,168,76,0.4); color:var(--gold2);
+    padding:0.72rem 1.5rem; font-family:'Roboto',sans-serif; font-size:13px;
+    font-weight:400; letter-spacing:0.1em; text-transform:uppercase;
+    border-radius:var(--radius); cursor:pointer; transition:all 0.22s;
+    display:flex; align-items:center; gap:0.45rem;
+  }
+  .btn-next:hover { background:rgba(201,168,76,0.1); border-color:var(--gold); color:var(--gold); }
+  .btn-next:disabled { opacity:0.22; cursor:not-allowed; pointer-events:none; }
+
+  .required-hint {
+    font-size:13px; color:rgba(255,255,255,0.3); text-align:center; margin-top:0.9rem;
+    letter-spacing:0.03em; transition:opacity 0.3s;
+  }
+  .required-hint.hidden { opacity:0; }
+
+  /* ─── RESULTS ─────────────── */
+  .section-label {
+    font-family:'Roboto Mono',monospace; font-size:12px; letter-spacing:0.17em;
+    text-transform:uppercase; color:var(--gold);
+    display:flex; align-items:center; gap:0.65rem;
+    margin-bottom:1.1rem; padding-bottom:0.65rem; border-bottom:1px solid rgba(201,168,76,0.12);
+  }
+  .results-header { margin-bottom:2.25rem; }
+  .results-title  { font-size:clamp(1.65rem,5vw,2.6rem); font-weight:300; margin-bottom:0.35rem; letter-spacing:-0.01em; }
+  .results-title em { font-style:italic; color:var(--gold2); }
+  .results-sub    { font-size:16px; color:var(--white2); font-weight:300; }
+
+  /* Outcome snapshot */
+  .snapshot-grid {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1px; background:rgba(201,168,76,0.1);
+    border:1px solid rgba(201,168,76,0.1); border-radius:var(--radius); overflow:hidden; margin-bottom:1px;
+  }
+  .snap-card { background:var(--navy2); padding:1.3rem 0.9rem; text-align:center; }
+  .snap-card-label { font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.45); margin-bottom:0.55rem; }
+  .snap-card-score { font-size:3rem; font-weight:300; line-height:1; margin-bottom:0.2rem; }
+  .snap-tier-lbl   { font-size:12px; color:rgba(255,255,255,0.38); margin-bottom:0.4rem; }
+  .snap-card-bar   { height:3px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; }
+  .snap-card-bar-fill { height:100%; border-radius:2px; transition:width 1s var(--ease); }
+
+  /* Outcome explanations */
+  .outcome-explain {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1px; background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); overflow:hidden; margin-bottom:2.75rem;
+  }
+  .oe-col { background:var(--navy2); padding:1.1rem 1rem; }
+  .oe-col-title {
+    font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.12em;
+    text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:0.7rem;
+    padding-bottom:0.45rem; border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .oe-item { display:flex; gap:0.5rem; font-size:14px; line-height:1.65; color:var(--white); margin-bottom:0.6rem; }
+  .oe-item:last-child { margin-bottom:0; }
+  .oe-tag {
+    font-family:'Roboto Mono',monospace; font-size:10px; letter-spacing:0.07em;
+    padding:0.17rem 0.38rem; border-radius:2px; flex-shrink:0; margin-top:2px;
+    align-self:flex-start; white-space:nowrap;
+  }
+  .oe-up   { background:var(--green-bg);  color:var(--green);  border:1px solid var(--green-bdr); }
+  .oe-down { background:var(--red-bg);    color:var(--red);    border:1px solid var(--red-bdr); }
+
+  /* Domain bars */
+  .domain-bars { margin-bottom:1rem; }
+  .dbar-row {
+    display:flex; align-items:center; gap:0.9rem; margin-bottom:0.65rem;
+    padding:0.95rem 1.05rem; border:1px solid rgba(255,255,255,0.05);
+    border-radius:var(--radius); background:rgba(17,24,39,0.4);
+  }
+  .dbar-info   { flex:0 0 150px; }
+  .dbar-name   { font-size:15px; font-weight:500; color:var(--white); margin-bottom:0.12rem; }
+  .dbar-anchor { font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.08em; color:rgba(255,255,255,0.35); }
+  .dbar-track  { flex:1; height:7px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
+  .dbar-fill   { height:100%; border-radius:4px; transition:width 1s var(--ease); }
+  .dbar-score  { flex:0 0 42px; text-align:right; font-size:1.35rem; font-weight:300; }
+  .dbar-tier   { flex:0 0 98px; text-align:right; }
+
+  /* Tier badge */
+  .tier-badge {
+    display:inline-block; font-family:'Roboto Mono',monospace;
+    font-size:11px; letter-spacing:0.09em; text-transform:uppercase;
+    padding:0.2rem 0.52rem; border-radius:2px; font-weight:400;
+  }
+  .tier-enabling     { background:var(--green-bg);  color:var(--green);  border:1px solid var(--green-bdr); }
+  .tier-developing   { background:var(--orange-bg); color:var(--orange); border:1px solid var(--orange-bdr); }
+  .tier-constraining { background:var(--red-bg);    color:var(--red);    border:1px solid var(--red-bdr); }
+
+  /* Interpretation cards */
+  .interp-section { margin-bottom:2.75rem; }
+  .interp-card { border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); margin-bottom:0.85rem; overflow:hidden; }
+  .interp-card-header {
+    display:flex; align-items:center; gap:0.9rem; padding:1rem 1.2rem;
+    background:rgba(17,24,39,0.6); cursor:pointer; transition:background 0.2s;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .interp-card-header:hover { background:rgba(17,24,39,0.9); }
+  .interp-card-header.open  { background:rgba(26,35,56,0.85); }
+  .interp-score-chip {
+    width:50px; height:50px; border-radius:3px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.25rem; font-weight:300;
+  }
+  .interp-card-meta { flex:1; }
+  .interp-card-name   { font-size:16px; font-weight:500; color:var(--white); }
+  .interp-card-anchor { font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.08em; color:rgba(255,255,255,0.35); margin-top:0.12rem; }
+  .interp-toggle { color:rgba(255,255,255,0.3); font-size:0.75rem; transition:transform 0.3s; flex-shrink:0; }
+  .interp-toggle.open { transform:rotate(180deg); }
+
+  .interp-body { padding:1.4rem 1.2rem; display:none; background:rgba(11,15,26,0.45); }
+  .interp-body.open { display:block; }
+  .interp-block { margin-bottom:1.15rem; }
+  .interp-block:last-child { margin-bottom:0; }
+  .interp-block-label {
+    font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--gold); margin-bottom:0.45rem;
+  }
+  .interp-block-text { font-size:15px; line-height:1.78; color:var(--white); }
+
+  .friction-box {
+    display:flex; gap:0.7rem; align-items:flex-start;
+    border-left:3px solid var(--orange); background:var(--orange-bg);
+    padding:0.95rem 1rem; border-radius:0 var(--radius) var(--radius) 0;
+  }
+  .friction-box.lvl-red { border-left-color:var(--red); background:var(--red-bg); }
+  .friction-icon { font-size:0.95rem; margin-top:2px; flex-shrink:0; }
+  .friction-label {
+    font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.13em;
+    text-transform:uppercase; color:var(--orange); margin-bottom:0.32rem;
+  }
+  .friction-box.lvl-red .friction-label { color:var(--red); }
+  .friction-text { font-size:14px; line-height:1.72; color:var(--white); }
+
+  .reflection-box {
+    margin-top:1.1rem; border:1px solid rgba(201,168,76,0.22);
+    border-radius:var(--radius); padding:1rem 1.1rem; background:rgba(201,168,76,0.05);
+  }
+  .reflection-label {
+    font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--gold); margin-bottom:0.45rem;
+  }
+  .reflection-text { font-size:16px; font-style:italic; font-weight:300; color:var(--white); line-height:1.65; }
+
+  /* Action plan */
+  .action-section { margin-bottom:2.75rem; }
+  .action-block { border:1px solid rgba(201,168,76,0.2); border-radius:var(--radius); overflow:hidden; background:rgba(201,168,76,0.03); }
+  .action-block-header { padding:1.15rem 1.35rem; background:rgba(201,168,76,0.07); border-bottom:1px solid rgba(201,168,76,0.12); }
+  .action-block-title { font-size:1.15rem; font-weight:400; color:var(--gold2); }
+  .action-block-sub   { font-size:13px; color:rgba(255,255,255,0.38); margin-top:0.18rem; }
+  .action-block-body  { padding:1.35rem; }
+  .action-type-label {
+    font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.15em;
+    text-transform:uppercase; color:var(--gold); margin-bottom:0.65rem; margin-top:1.1rem;
+  }
+  .action-type-label:first-child { margin-top:0; }
+  .action-list { list-style:none; }
+  .action-list li {
+    display:flex; gap:0.65rem; font-size:15px; line-height:1.72; color:var(--white);
+    margin-bottom:0.55rem; padding-bottom:0.55rem; border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .action-list li:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .action-bullet { color:var(--gold); font-size:0.6rem; margin-top:5px; flex-shrink:0; }
+
+  /* Beta footer */
+  .results-footer { border-top:1px solid rgba(201,168,76,0.1); padding-top:1.75rem; }
+  .beta-footer-box {
+    border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius);
+    padding:1.2rem 1.35rem; background:rgba(17,24,39,0.5); margin-bottom:1.35rem;
+  }
+  .beta-footer-label { font-family:'Roboto Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--orange); margin-bottom:0.55rem; }
+  .beta-footer-text  { font-size:14px; line-height:1.8; color:rgba(255,255,255,0.5); }
+  .beta-footer-text strong { color:rgba(255,255,255,0.7); font-weight:500; }
+
+  .footer-row { display:flex; justify-content:flex-end; }
+  .btn-restart {
+    background:none; border:1px solid rgba(255,255,255,0.14); color:rgba(255,255,255,0.45);
+    padding:0.62rem 1.25rem; font-family:'Roboto',sans-serif; font-size:13px;
+    letter-spacing:0.1em; text-transform:uppercase; border-radius:var(--radius); cursor:pointer; transition:all 0.2s;
+  }
+  .btn-restart:hover { border-color:var(--gold); color:var(--gold); }
+
+  /* Responsive */
+  @media (max-width:620px) {
+    .domain-grid      { grid-template-columns:1fr; }
+    .snapshot-grid    { grid-template-columns:1fr; }
+    .outcome-explain  { grid-template-columns:1fr; }
+    .dbar-info        { flex:0 0 100px; }
+    .dbar-tier        { flex:0 0 76px; }
+    .dbar-score       { flex:0 0 34px; font-size:1.05rem; }
+    .top-tag          { display:none; }
+    .scale-num        { font-size:1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top-bar">
+    <div class="logo-mark">
+      <div class="logo-icon"></div>
+      <div class="logo-text">Decision Intelligence</div>
+    </div>
+    <div class="top-tag">Beta · Capability Diagnostic</div>
+  </div>
+  <div id="screen" class="screen"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   DATA
+══════════════════════════════════════ */
+const DOMAINS = [
+  { id:'governance',   name:'Decision Governance & Clarity',          shortName:'Governance',         anchor:'Territory' },
+  { id:'systems',      name:'Systems & Structural Awareness',          shortName:'Transversal Impact', anchor:'Transversal Impact' },
+  { id:'information',  name:'Information Discipline',                  shortName:'Traceability',       anchor:'Traceability' },
+  { id:'adaptive',     name:'Adaptive Judgment Under Uncertainty',     shortName:'Tradeoffs',          anchor:'Tradeoffs' }
+];
+
+const DCOLORS = ['#6ab4e2','#a87acf','#7acfa8','#c98a6a'];
+
+const QUESTIONS_RAW = [
+  { domain:0, text:"When roles or decision rights are unclear, I take action to clarify them before proceeding." },
+  { domain:0, text:"I make decision ownership and accountability explicit for significant initiatives." },
+  { domain:0, text:"When direction changes, I identify which decisions must change and which remain fixed." },
+  { domain:1, text:"I consider impacts beyond my immediate scope when making decisions." },
+  { domain:1, text:"I evaluate how decisions affect systems, workflows, and dependencies." },
+  { domain:1, text:"I evaluate how decisions affect organizational structure or operating model." },
+  { domain:2, text:"Before deciding, I verify that the information used is reliable and understood." },
+  { domain:2, text:"I ensure decision-relevant information is accessible to appropriate stakeholders." },
+  { domain:2, text:"I make key assumptions and decision rationale explicit." },
+  { domain:3, text:"I move forward on consequential decisions without full clarity, making assumptions explicit." },
+  { domain:3, text:"When new information emerges, I adjust decisions even if work has already started." },
+  { domain:3, text:"When tradeoffs are required, I make them explicit rather than implicit." }
+];
+
+/* ══════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════ */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function tierKey(s)   { return s<50?'constraining':s<75?'developing':'enabling'; }
+function tierLabel(s) { return s<50?'Constraining':s<75?'Developing':'Enabling'; }
+function tierColor(s) { return s<50?'var(--red)':s<75?'var(--orange)':'var(--green)'; }
+function barGrad(s)   { return s<50?'linear-gradient(90deg,#c0392b,var(--red))':s<75?'linear-gradient(90deg,#d68910,var(--orange))':'linear-gradient(90deg,#1e8449,var(--green))'; }
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let questions = [];
+let answers   = [];
+
+function initQuestions() {
+  questions = shuffle(QUESTIONS_RAW.map((q,i)=>({...q,origIdx:i})));
+  answers   = new Array(12).fill(null);
+}
+
+/* ══════════════════════════════════════
+   SCORING
+══════════════════════════════════════ */
+function computeScores() {
+  const sums=[0,0,0,0], counts=[0,0,0,0];
+  questions.forEach((q,i)=>{
+    if(answers[i]!==null){ sums[q.domain]+=answers[i]; counts[q.domain]++; }
+  });
+  const ds = sums.map((s,i)=>Math.round((counts[i]?s/counts[i]:0)*20));
+  const [g,sy,inf,ad] = ds;
+  return {
+    domainScores: ds,
+    velocity:    Math.round(0.35*g + 0.15*sy + 0.15*inf + 0.35*ad),
+    quality:     Math.round(0.15*g + 0.30*sy + 0.30*inf + 0.25*ad),
+    performance: Math.round(0.20*g + 0.30*sy + 0.20*inf + 0.30*ad)
+  };
+}
+
+/* ══════════════════════════════════════
+   INTERPRETATIONS
+══════════════════════════════════════ */
+const INTERP = [
+  { // Governance
+    suggests: {
+      constraining:"Decision rights and ownership are not yet clearly defined. People are uncertain about who decides what — and that uncertainty is costing time and energy. Decisions get delayed, re-opened, or quietly avoided.",
+      developing:  "You have some clarity around decision rights, but it's applied inconsistently. On familiar ground, things work well. On complex or cross-functional decisions, ownership gets blurry.",
+      enabling:    "You are clear about who owns what. Decisions are named, accountability is assigned, and when direction changes, you know exactly what needs to be revisited. This is a genuine strength."
+    },
+    impact: {
+      constraining:"When no one clearly owns a decision, everything takes longer. Teams wait for permission they never get — or make calls without authority, creating rework and confusion downstream.",
+      developing:  "Most decisions move forward, but you likely spend more time than needed re-aligning on ownership. On high-stakes decisions, this gap becomes more visible and more costly.",
+      enabling:    "Clear governance is a speed and quality multiplier. Teams move faster because they know the rules. Conflict is reduced because accountability is visible from the start."
+    },
+    friction: {
+      constraining:"Territory friction is high. Without clear decision rights, people protect their turf, duplicate effort, or wait for someone else to go first. The cost accumulates quietly.",
+      developing:  "Territory friction is moderate. Boundary questions arise under pressure or in ambiguous situations. The risk increases when multiple stakeholders overlap.",
+      enabling:    "Territory friction is well-managed. Lines of ownership are respected and maintained — making collaboration faster and more trustworthy."
+    }
+  },
+  { // Systems
+    suggests: {
+      constraining:"Decisions are mostly made within your immediate view. The ripple effects — on other teams, workflows, or structures — often aren't visible until after the decision is made.",
+      developing:  "You are developing awareness of how your decisions affect the wider system. You catch some dependencies, but under time pressure, structural thinking sometimes gets skipped.",
+      enabling:    "You think in systems. Before committing, you consider what else will be affected — other functions, workflows, and structures. This prevents a lot of downstream trouble."
+    },
+    impact: {
+      constraining:"Decisions that don't account for system-wide effects often need correction. Quality looks fine locally — but breaks down at the handoff points where teams intersect.",
+      developing:  "Quality is improving, but inconsistent. Structural blind spots create decisions that make sense in isolation but generate friction elsewhere in the organization.",
+      enabling:    "Decision quality is elevated by your systems awareness. You catch second-order effects early — before they become expensive problems."
+    },
+    friction: {
+      constraining:"Transversal friction is high. Decisions made without cross-functional visibility generate rework, re-planning, and surprises — often discovered by others, not you.",
+      developing:  "Transversal friction is moderate. The skill is there, but not yet consistent enough to prevent systemic gaps in complex, multi-stakeholder decisions.",
+      enabling:    "Transversal friction is low. Downstream effects are anticipated, not discovered. Teams trust that your decisions won't blindside them."
+    }
+  },
+  { // Information
+    suggests: {
+      constraining:"Decisions often move forward without verifying whether the underlying information is solid. Assumptions stay implicit. Rationale isn't documented — making it hard to revisit or learn from later.",
+      developing:  "You pay attention to information quality in some situations, but not consistently. Important assumptions are sometimes surfaced, sometimes not.",
+      enabling:    "Information discipline is a real strength. You verify before deciding, you document your reasoning, and you make sure relevant people have access to the same facts."
+    },
+    impact: {
+      constraining:"When decisions are built on unverified inputs or silent assumptions, quality suffers. You often discover the gap after commitment — when correction is more expensive.",
+      developing:  "Quality is inconsistent. You get it right when you slow down and verify. The risk is that you don't always slow down — especially under pressure.",
+      enabling:    "Decisions are well-grounded. Stakeholders share a common factual basis, reducing conflict and enabling faster alignment — even on difficult topics."
+    },
+    friction: {
+      constraining:"Traceability friction is high. Without documented rationale, decisions become hard to audit, explain, or revisit. When things go wrong, no one can reconstruct why the call was made.",
+      developing:  "Traceability friction is moderate. The habit exists in high-visibility situations, but isn't yet reliable under complexity or time pressure.",
+      enabling:    "Traceability friction is low. Decision logic is visible and transferable — even when context shifts or team members change."
+    }
+  },
+  { // Adaptive
+    suggests: {
+      constraining:"You tend to wait for more certainty before deciding — or avoid naming tradeoffs explicitly. This creates decision debt: choices that need to be made keep getting deferred.",
+      developing:  "You can move under uncertainty, but tradeoffs don't always get named out loud. Some decisions move forward while quietly leaving key questions unresolved.",
+      enabling:    "You operate confidently in ambiguous situations. Tradeoffs are named, assumptions are stated, and when conditions change, you revisit decisions without losing momentum."
+    },
+    impact: {
+      constraining:"Decision velocity takes a direct hit. Teams stall waiting for certainty that won't come. When circumstances shift, decisions made on implicit assumptions become fragile — and expensive to correct.",
+      developing:  "Velocity is moderate. You move forward, but implicit tradeoffs create alignment gaps that surface downstream — usually at the worst time.",
+      enabling:    "Adaptive judgment is a velocity driver. Teams can move fast because thresholds are clear and tradeoffs are transparent from the start."
+    },
+    friction: {
+      constraining:"Tradeoffs friction is high. When tradeoffs stay implicit, they get baked in as hidden assumptions. When conditions change, those assumptions break — and the decision breaks with them.",
+      developing:  "Tradeoffs friction is moderate. Some tradeoffs are surfaced — but inconsistently. The ones that stay implicit are usually the ones that come back later.",
+      enabling:    "Tradeoffs friction is low. Everyone understands what was optimized and what was not. Course correction, when needed, is faster and less contentious."
+    }
+  }
+];
+
+/* ══════════════════════════════════════
+   ACTION PLANS
+══════════════════════════════════════ */
+const ACTIONS = {
+  governance: {
+    behavioral:[
+      "At the start of any significant initiative, name the decision owner out loud — not just in your head.",
+      "When direction changes, explicitly identify which prior decisions are now invalidated and which hold firm.",
+      "Treat unclear decision rights as a blocker to be resolved, not a grey area to work around."
+    ],
+    structural:[
+      "Build a simple decision rights framework for your most common initiative types — so ownership isn't re-negotiated from scratch each time.",
+      "Introduce a brief decision log into major project reviews: who owns what, when it was decided, and why."
+    ],
+    reflection:"Where in your work are decisions being made without clear ownership — and what is the real cost of that ambiguity over time?"
+  },
+  systems: {
+    behavioral:[
+      "Before finalizing any significant decision, name the three functions most affected and confirm they've had input.",
+      "When evaluating options, ask explicitly: what does this change about how work flows across teams or systems?",
+      "Distinguish clearly between decisions that optimize locally and decisions that reshape shared infrastructure."
+    ],
+    structural:[
+      "Build a lightweight dependency map into your project governance — updated at each key decision point.",
+      "Add a cross-functional review step for decisions that touch organizational structure or operating model."
+    ],
+    reflection:"Which of your recent decisions created consequences in other parts of the organization that you didn't anticipate — and what would have surfaced those risks earlier?"
+  },
+  information: {
+    behavioral:[
+      "Before committing to a major decision, name the three key assumptions you're treating as true — and rate your confidence in each.",
+      "Ensure that decision-relevant information is accessible to the people who need it before the decision, not after.",
+      "Develop the habit of distinguishing clearly between what you know and what you are assuming."
+    ],
+    structural:[
+      "Adopt a brief standard for decision documentation: inputs used, assumptions made, decision taken, rationale given.",
+      "Create accessible repositories for major decision inputs so that revisiting decisions doesn't rely on someone's memory."
+    ],
+    reflection:"When a decision you made was questioned or overturned — how much time could have been saved if the original rationale had been documented and shared?"
+  },
+  adaptive: {
+    behavioral:[
+      "When moving forward under uncertainty, state the assumptions you're relying on — and the condition that would trigger a revisit.",
+      "Before deciding, say out loud: 'We are optimizing for X, which means accepting Y.' Then decide.",
+      "Normalize decision revisiting on your team as a sign of discipline, not inconsistency."
+    ],
+    structural:[
+      "Define shared decision thresholds: what level of information is sufficient to move forward, and what constitutes a revisit trigger.",
+      "Make a one-sentence tradeoff statement a required part of any major decision proposal: what will not be optimized."
+    ],
+    reflection:"Where are your teams waiting for certainty that won't arrive — and what is the actual cost of that delay compared to the cost of deciding now with stated assumptions?"
+  }
+};
+
+/* ══════════════════════════════════════
+   IMPACT ANALYSIS
+══════════════════════════════════════ */
+function buildImpact(ds) {
+  const [g,sy,inf,ad] = ds;
+  const N = ['Governance','Transversal Impact','Traceability','Tradeoffs'];
+  const vArr = [
+    {d:g,  n:N[0], t:'Clear decision rights eliminate the ownership disputes that delay forward momentum.'},
+    {d:ad, n:N[3], t:'Explicit tradeoffs reduce decision stall and support confident forward movement.'},
+    {d:sy, n:N[1], t:'Systemic awareness prevents costly detours caused by unexamined dependencies.'},
+    {d:inf,n:N[2], t:'Verified information reduces rework from decisions built on faulty inputs.'}
+  ];
+  const qArr = [
+    {d:sy, n:N[1], t:'Structural awareness raises quality by accounting for cross-functional consequences.'},
+    {d:inf,n:N[2], t:'Information discipline reduces the risk of decisions built on unverified assumptions.'},
+    {d:ad, n:N[3], t:'Explicit tradeoff naming creates shared understanding and prevents hidden compromises.'},
+    {d:g,  n:N[0], t:'Accountability clarity ensures decisions are owned and followed through with rigor.'}
+  ];
+  const pArr = [
+    {d:sy, n:N[1], t:'Systemic thinking connects individual decisions to organizational outcomes.'},
+    {d:ad, n:N[3], t:'Adaptive judgment maintains momentum without sacrificing strategic coherence.'},
+    {d:g,  n:N[0], t:'Governance clarity ensures decisions translate to action with clear ownership.'},
+    {d:inf,n:N[2], t:'Information traceability supports organizational learning and performance continuity.'}
+  ];
+  const top = arr=>[...arr].sort((a,b)=>b.d-a.d)[0];
+  const bot = arr=>[...arr].sort((a,b)=>a.d-b.d)[0];
+  return {
+    velocity:    {s:top(vArr),r:bot(vArr)},
+    quality:     {s:top(qArr),r:bot(qArr)},
+    performance: {s:top(pArr),r:bot(pArr)}
+  };
+}
+
+/* ══════════════════════════════════════
+   RENDER: INTRO
+══════════════════════════════════════ */
+function renderIntro() {
+  return `<div class="screen fade-enter" style="padding-top:0.5rem">
+    <div class="eyebrow">Self-Assessment Instrument</div>
+    <h1 class="intro-title">Decision <em>Intelligence</em><br>Diagnostic</h1>
+    <div class="intro-divider"></div>
+    <p class="intro-body">This diagnostic helps you reflect on four decision-making capabilities that shape how well you navigate complexity, uncertainty, and competing priorities at work. It is designed for structured self-reflection — not as a performance evaluation.</p>
+    <p class="beta-note">⚠ Beta version — This tool is based on ongoing research and evolving frameworks. Scores are indicative, not definitive. Use results as a starting point for reflection and conversation, not as a fixed assessment of your abilities.</p>
+    <div class="domain-grid">${DOMAINS.map((d,i)=>`
+      <div class="domain-card">
+        <div class="domain-card-num">Domain ${String(i+1).padStart(2,'0')}</div>
+        <div class="domain-card-name">${d.name}</div>
+        <div class="domain-card-anchor">Friction: ${d.anchor}</div>
+      </div>`).join('')}
+    </div>
+    <div class="meta-grid">
+      <div class="meta-item"><div class="meta-val">12</div><div class="meta-label">Questions</div></div>
+      <div class="meta-item"><div class="meta-val">4</div><div class="meta-label">Domains</div></div>
+      <div class="meta-item"><div class="meta-val">~5</div><div class="meta-label">Minutes</div></div>
+    </div>
+    <button class="btn-primary" onclick="startDiagnostic()">Begin Assessment <span class="arrow">→</span></button>
+  </div>`;
+}
+
+/* ══════════════════════════════════════
+   RENDER: QUESTION
+══════════════════════════════════════ */
+function renderQuestion(idx) {
+  const q = questions[idx];
+  const d = DOMAINS[q.domain];
+  const selected = answers[idx];
+  const segs = Array.from({length:12},(_,i)=>`<div class="seg${i<idx?' filled':i===idx?' active':''}"></div>`).join('');
+
+  return `<div class="screen fade-enter">
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span class="progress-label">Progress</span>
+        <span class="progress-counter">${idx+1} <span style="color:rgba(255,255,255,0.28);font-size:14px">/ 12</span></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${(idx/12)*100}%"></div></div>
+      <div class="progress-segs">${segs}</div>
+    </div>
+
+    <div class="q-domain-label">
+      <div class="q-domain-dot" style="background:${DCOLORS[q.domain]}"></div>
+      ${d.name}
+    </div>
+    <div class="q-text">${q.text}</div>
+
+    <div class="scale-wrap">
+      <div class="scale-outer-labels"><span>Rarely true</span><span>Consistently true</span></div>
+      <div class="scale-options" id="so-${idx}">
+        ${[1,2,3,4,5].map(v=>`
+          <button class="scale-btn${selected===v?' selected':''}" id="sb-${idx}-${v}" onclick="selectAnswer(${idx},${v})" aria-label="Option ${v}">
+            <span class="scale-num">${v}</span>
+          </button>`).join('')}
+      </div>
+    </div>
+
+    <div class="q-nav">
+      <button class="btn-ghost" onclick="goBack(${idx})" ${idx===0?'disabled':''}>← Back</button>
+      <button class="btn-next" id="bn-${idx}" onclick="goNext(${idx})" ${selected===null?'disabled':''}>
+        ${idx===11?'View Results':'Next'} →
+      </button>
+    </div>
+    <p class="required-hint${selected!==null?' hidden':''}" id="rh-${idx}">Please select a response to continue.</p>
+  </div>`;
+}
+
+/* ══════════════════════════════════════
+   RENDER: RESULTS
+══════════════════════════════════════ */
+function renderResults() {
+  const {domainScores:ds, velocity:vel, quality:qual, performance:perf} = computeScores();
+  const impact = buildImpact(ds);
+  const lowestIdx = ds.indexOf(Math.min(...ds));
+  const lowestId  = ['governance','systems','information','adaptive'][lowestIdx];
+  const act = ACTIONS[lowestId];
+
+  function oeItem(type, name, text) {
+    return `<div class="oe-item">
+      <span class="oe-tag ${type==='s'?'oe-up':'oe-down'}">${type==='s'?'+':'−'} ${name}</span>
+      <span>${text}</span>
+    </div>`;
+  }
+
+  const interpCards = DOMAINS.map((d,i)=>{
+    const score = ds[i];
+    const tier  = tierKey(score);
+    const interp= INTERP[i];
+    const color = tierColor(score);
+    return `<div class="interp-card">
+      <div class="interp-card-header" onclick="toggleInterp(this)">
+        <div class="interp-score-chip" style="background:rgba(0,0,0,0.3);color:${color};border:1px solid ${color}55">${score}</div>
+        <div class="interp-card-meta">
+          <div class="interp-card-name">${d.name}</div>
+          <div class="interp-card-anchor">Friction anchor · ${d.anchor}</div>
+        </div>
+        <span class="tier-badge tier-${tier}">${tierLabel(score)}</span>
+        <div class="interp-toggle">▾</div>
+      </div>
+      <div class="interp-body">
+        <div class="interp-block">
+          <div class="interp-block-label">What this suggests</div>
+          <div class="interp-block-text">${interp.suggests[tier]}</div>
+        </div>
+        <div class="interp-block">
+          <div class="interp-block-label">How it affects your decisions</div>
+          <div class="interp-block-text">${interp.impact[tier]}</div>
+        </div>
+        <div class="interp-block">
+          <div class="friction-box${score<50?' lvl-red':''}">
+            <div class="friction-icon">◈</div>
+            <div>
+              <div class="friction-label">Friction risk · ${d.anchor}</div>
+              <div class="friction-text">${interp.friction[tier]}</div>
+            </div>
+          </div>
+        </div>
+        <div class="reflection-box">
+          <div class="reflection-label">Leadership Reflection</div>
+          <div class="reflection-text">${ACTIONS[['governance','systems','information','adaptive'][i]].reflection}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="screen fade-enter">
+
+    <div class="results-header">
+      <div class="eyebrow">Assessment Complete</div>
+      <h2 class="results-title">Your <em>Decision Intelligence</em> Profile</h2>
+      <p class="results-sub">Results reflect your behavioral patterns across four decision-making domains.</p>
+    </div>
+
+    <div class="section-label">— Outcome Scores</div>
+    <div class="snapshot-grid">
+      ${[
+        {label:'Decision Velocity',    score:vel,  key:'vel'},
+        {label:'Decision Quality',     score:qual, key:'qual'},
+        {label:'Decision Performance', score:perf, key:'perf'}
+      ].map(({label,score})=>`
+        <div class="snap-card">
+          <div class="snap-card-label">${label}</div>
+          <div class="snap-card-score" style="color:${tierColor(score)}">${score}</div>
+          <div class="snap-tier-lbl">${tierLabel(score)}</div>
+          <div class="snap-card-bar"><div class="snap-card-bar-fill" style="width:${score}%;background:${barGrad(score)}"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="outcome-explain">
+      <div class="oe-col">
+        <div class="oe-col-title">What shapes Velocity</div>
+        ${oeItem('s', impact.velocity.s.n,    impact.velocity.s.t)}
+        ${oeItem('r', impact.velocity.r.n,    impact.velocity.r.t)}
+      </div>
+      <div class="oe-col">
+        <div class="oe-col-title">What shapes Quality</div>
+        ${oeItem('s', impact.quality.s.n,     impact.quality.s.t)}
+        ${oeItem('r', impact.quality.r.n,     impact.quality.r.t)}
+      </div>
+      <div class="oe-col">
+        <div class="oe-col-title">What shapes Performance</div>
+        ${oeItem('s', impact.performance.s.n, impact.performance.s.t)}
+        ${oeItem('r', impact.performance.r.n, impact.performance.r.t)}
+      </div>
+    </div>
+
+    <div class="section-label">— Domain Scores</div>
+    <div class="domain-bars" style="margin-bottom:2.75rem">
+      ${DOMAINS.map((d,i)=>{
+        const score=ds[i];
+        return `<div class="dbar-row">
+          <div class="dbar-info"><div class="dbar-name">${d.shortName}</div><div class="dbar-anchor">${d.anchor}</div></div>
+          <div class="dbar-track"><div class="dbar-fill" style="width:${score}%;background:linear-gradient(90deg,${DCOLORS[i]}88,${DCOLORS[i]})"></div></div>
+          <div class="dbar-score" style="color:${DCOLORS[i]}">${score}</div>
+          <div class="dbar-tier"><span class="tier-badge tier-${tierKey(score)}">${tierLabel(score)}</span></div>
+        </div>`;}).join('')}
+    </div>
+
+    <div class="section-label">— Domain Interpretation, Friction Risk & Reflection</div>
+    <div class="interp-section">${interpCards}</div>
+
+    <div class="action-section">
+      <div class="section-label">— Priority Development Area</div>
+      <div class="action-block">
+        <div class="action-block-header">
+          <div class="action-block-title">${DOMAINS[lowestIdx].name}</div>
+          <div class="action-block-sub">Score ${ds[lowestIdx]} · ${tierLabel(ds[lowestIdx])} · Friction: ${DOMAINS[lowestIdx].anchor}</div>
+        </div>
+        <div class="action-block-body">
+          <div class="action-type-label">Behavioral Adjustments</div>
+          <ul class="action-list">${act.behavioral.map(b=>`<li><span class="action-bullet">◆</span><span>${b}</span></li>`).join('')}</ul>
+          <div class="action-type-label">Structural Adjustments</div>
+          <ul class="action-list">${act.structural.map(s=>`<li><span class="action-bullet">◇</span><span>${s}</span></li>`).join('')}</ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-footer">
+      <div class="beta-footer-box">
+        <div class="beta-footer-label">⚠ Beta Diagnostic — Important Note</div>
+        <div class="beta-footer-text">
+          This is a <strong>beta instrument</strong> based on continuing research into decision intelligence and organizational behavior. It is <strong>not a validated psychometric test</strong>, and scores should not be interpreted as fixed or definitive assessments of your capabilities.<br><br>
+          Results are intended to support <strong>structured reflection</strong> — to help you notice patterns, start conversations, and identify areas worth developing. Your scores reflect behavioral tendencies in the way you recognize yourself right now. They can and do shift with awareness and deliberate practice.<br><br>
+          <strong>Use this as a mirror, not a verdict.</strong>
+        </div>
+      </div>
+      <div class="footer-row">
+        <button class="btn-restart" onclick="restart()">Retake Assessment</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════
+   INTERACTIONS — in-place update, no re-render
+══════════════════════════════════════ */
+function startDiagnostic() {
+  initQuestions();
+  transitionTo(() => renderQuestion(0));
+}
+
+function selectAnswer(idx, val) {
+  answers[idx] = val;
+
+  // Update buttons in-place (no page reload)
+  document.querySelectorAll(`#so-${idx} .scale-btn`).forEach(btn => {
+    btn.classList.remove('selected','pulsing');
+  });
+  const chosen = document.getElementById(`sb-${idx}-${val}`);
+  if (chosen) {
+    chosen.classList.add('selected','pulsing');
+    setTimeout(() => chosen.classList.remove('pulsing'), 600);
+  }
+
+  // Unlock Next
+  const next = document.getElementById(`bn-${idx}`);
+  if (next) next.disabled = false;
+
+  // Hide hint
+  const hint = document.getElementById(`rh-${idx}`);
+  if (hint) hint.classList.add('hidden');
+}
+
+function goNext(idx) {
+  if (answers[idx] === null) return;
+  if (idx === 11) {
+    transitionTo(() => renderResults());
+    setTimeout(initAnimations, 120);
+    return;
+  }
+  transitionTo(() => renderQuestion(idx + 1));
+}
+
+function goBack(idx) {
+  if (idx === 0) return;
+  transitionTo(() => renderQuestion(idx - 1));
+}
+
+function toggleInterp(header) {
+  const body  = header.nextElementSibling;
+  const arrow = header.querySelector('.interp-toggle');
+  const open  = body.classList.contains('open');
+  body.classList.toggle('open', !open);
+  header.classList.toggle('open', !open);
+  arrow.classList.toggle('open', !open);
+}
+
+function restart() { transitionTo(() => renderIntro()); }
+
+/* ══════════════════════════════════════
+   TRANSITIONS
+══════════════════════════════════════ */
+function transitionTo(fn) {
+  const el = document.getElementById('screen');
+  el.classList.add('fade-exit');
+  setTimeout(() => {
+    el.classList.remove('fade-exit');
+    el.innerHTML = fn();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }, 185);
+}
+
+/* ══════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════ */
+function initAnimations() {
+  document.querySelectorAll('.dbar-fill, .snap-card-bar-fill').forEach(f => {
+    const t = f.style.width; f.style.width = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => { f.style.width = t; }));
+  });
+  setTimeout(() => {
+    const first = document.querySelector('.interp-card-header');
+    if (first) toggleInterp(first);
+  }, 350);
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('screen').innerHTML = renderIntro();
+});
+</script>
+</body>
+</html>
