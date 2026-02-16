@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monica Lee · Decision Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f9f7f4;
+    --ink: #1a1916;
+    --warm-mid: #6b6560;
+    --warm-light: #c4bdb4;
+    --rule: #e8e3dc;
+    --gold: #b8935a;
+    --gold-pale: #f0e8d8;
+    --forest: #2e4a40;
+    --white: #ffffff;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle grain */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    padding: 20px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(249,247,244,0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+
+  nav.scrolled { border-color: var(--rule); }
+
+  .nav-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--gold); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 120px 48px 80px;
+    gap: 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .hero-left {
+    animation: fadeUp 0.9s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .eyebrow-line {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .eyebrow-text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(48px, 5vw, 72px);
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--warm-mid);
+  }
+
+  .hero-title strong {
+    font-weight: 600;
+    display: block;
+  }
+
+  .hero-descriptor {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 32px;
+    margin-top: 12px;
+  }
+
+  .hero-bio {
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.85;
+    color: var(--warm-mid);
+    margin-bottom: 40px;
+    max-width: 480px;
+  }
+
+  .hero-bio strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 1px;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .btn-primary:hover {
+    background: var(--forest);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26,25,22,0.15);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--rule);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* Hero right — decorative panel */
+  .hero-right {
+    animation: fadeUp 0.9s 0.2s ease forwards;
+    opacity: 0;
+    position: relative;
+  }
+
+  .hero-panel {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    padding: 48px 40px;
+    position: relative;
+  }
+
+  .hero-panel::before {
+    content: '';
+    position: absolute;
+    top: -8px; left: -8px;
+    right: 8px; bottom: 8px;
+    border: 1px solid var(--gold-pale);
+    z-index: -1;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .panel-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+
+  .panel-divider {
+    width: 100%;
+    height: 1px;
+    background: var(--rule);
+    margin: 24px 0;
+  }
+
+  .panel-pillars {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .pillar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .pillar-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-convergence { background: var(--forest); }
+  .dot-capability { background: var(--gold); }
+  .dot-environment { background: #7a5c7a; }
+
+  .pillar-text {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--warm-mid);
+    line-height: 1.4;
+  }
+
+  .pillar-text strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ── TOOLS SECTION ── */
+  .tools-section {
+    padding: 100px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 56px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--rule);
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .section-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 4vw, 44px);
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .section-note {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--warm-mid);
+    max-width: 300px;
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  .tools-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .tool-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    padding: 40px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .tool-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .tool-card:hover {
+    border-color: var(--warm-light);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+    transform: translateY(-4px);
+  }
+
+  .tool-card:hover::after { transform: scaleX(1); }
+
+  .tool-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: var(--rule);
+    line-height: 1;
+    margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+
+  .tool-card:hover .tool-number { color: var(--gold-pale); }
+
+  .tool-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 1px;
+    margin-bottom: 16px;
+  }
+
+  .tag-workshop { background: rgba(46,74,64,0.1); color: var(--forest); }
+  .tag-assessment { background: rgba(184,147,90,0.12); color: #8a5e2a; }
+
+  .tool-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+
+  .tool-description {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.75;
+    color: var(--warm-mid);
+    margin-bottom: 28px;
+  }
+
+  .tool-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    transition: gap 0.2s;
+  }
+
+  .tool-card:hover .tool-link { gap: 12px; }
+
+  .tool-arrow {
+    font-size: 16px;
+    transition: transform 0.2s;
+  }
+
+  .tool-card:hover .tool-arrow { transform: translateX(4px); }
+
+  /* ── ABOUT SECTION ── */
+  .about-section {
+    background: var(--ink);
+    padding: 100px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .about-section::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(184,147,90,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .about-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .about-left .section-eyebrow { color: var(--gold); }
+
+  .about-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 4vw, 52px);
+    font-weight: 300;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 0;
+  }
+
+  .about-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .about-rule {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin-top: 28px;
+  }
+
+  .about-bio {
+    font-size: 17px;
+    font-weight: 300;
+    line-height: 1.9;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 36px;
+  }
+
+  .about-bio strong {
+    font-weight: 500;
+    color: var(--white);
+  }
+
+  .expertise-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .expertise-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .expertise-dash {
+    width: 16px;
+    height: 1px;
+    background: var(--gold);
+    margin-top: 11px;
+    flex-shrink: 0;
+  }
+
+  .expertise-text {
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 32px 48px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .footer-note {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--warm-light);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 18px 24px; }
+    .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; gap: 48px; min-height: auto; }
+    .hero-right { display: none; }
+    .tools-section { padding: 72px 24px; }
+    .tools-grid { grid-template-columns: 1fr; }
+    .about-section { padding: 72px 24px; }
+    .about-inner { grid-template-columns: 1fr; gap: 40px; }
+    .expertise-grid { grid-template-columns: 1fr; }
+    footer { padding: 24px; flex-direction: column; align-items: flex-start; }
+    .section-note { text-align: left; }
+  }
+
+  @media (max-width: 500px) {
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-name">Monica Lee</a>
+  <ul class="nav-links">
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">
+      <div class="eyebrow-line"></div>
+      <span class="eyebrow-text">Decision Intelligence</span>
+    </div>
+    <h1 class="hero-title">
+      <em>Building the</em>
+      <strong>foundation</strong>
+      <em>for better decisions.</em>
+    </h1>
+    <p class="hero-descriptor">Transformation Architect · AI-Human Collaboration</p>
+    <p class="hero-bio">
+      Helping organizations move from <strong>decision chaos to decision clarity</strong> — by building the convergence, capability, and environmental awareness that makes every consequential choice count.
+    </p>
+    <div class="hero-cta">
+      <a href="#tools" class="btn btn-primary">Explore the Tools →</a>
+      <a href="#about" class="btn btn-outline">About Monica</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-panel">
+      <div class="panel-label">The DI Framework</div>
+      <p class="panel-quote">"Decision velocity, quality, and performance depend on three conditions — and most organizations are missing at least one."</p>
+      <div class="panel-divider"></div>
+      <div class="panel-pillars">
+        <div class="pillar">
+          <div class="pillar-dot dot-convergence"></div>
+          <div class="pillar-text"><strong>Convergence</strong> — Shared vision, common language, aligned goals</div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-dot dot-capability"></div>
+          <div class="pillar-text"><strong>Capability</strong> — System readiness, structural readiness, DI maturity</div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-dot dot-environment"></div>
+          <div class="pillar-text"><strong>Environment</strong> — Systems thinking, cross-functional awareness, adaptive judgment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="tools-section" id="tools">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-eyebrow">Interactive Tools</div>
+      <h2 class="section-title">Put your decision intelligence<br>to the test.</h2>
+    </div>
+    <p class="section-note">Two tools designed for leaders who want to understand how they really decide — before AI decides alongside them.</p>
+  </div>
+
+  <div class="tools-grid">
+    <a href="adventure.html" class="tool-card reveal">
+      <div class="tool-number">01</div>
+      <span class="tool-tag tag-workshop">Workshop Tool</span>
+      <h3 class="tool-title">The AI Initiative</h3>
+      <p class="tool-description">A choose-your-own-adventure scenario that places you at the helm of an enterprise AI initiative. Four critical decision points. Three conditions tested. One optimal outcome — and it might surprise you.</p>
+      <span class="tool-link">Begin the Journey <span class="tool-arrow">→</span></span>
+    </a>
+
+    <a href="decision-intelligence-diagnostic.html" class="tool-card reveal">
+      <div class="tool-number">02</div>
+      <span class="tool-tag tag-assessment">Self-Assessment</span>
+      <h3 class="tool-title">DI Diagnostic</h3>
+      <p class="tool-description">A structured self-assessment that measures your organization's decision intelligence maturity across convergence, capability, and environment. Know where you stand before you move.</p>
+      <span class="tool-link">Take the Diagnostic <span class="tool-arrow">→</span></span>
+    </a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about-section" id="about">
+  <div class="about-inner">
+    <div class="about-left">
+      <div class="section-eyebrow">About</div>
+      <h2 class="about-title">Monica<br><em>Lee</em></h2>
+      <div class="about-rule"></div>
+    </div>
+
+    <div class="about-right">
+      <p class="about-bio">
+        Monica Lee is an <strong>award-winning transformation architect</strong> with expertise across private and public sector technology. She bridges strategy and execution, mobilizing teams around <strong>systems that drive measurable value.</strong>
+      </p>
+      <p class="about-bio">
+        Building credibility in <strong>leadership evolution</strong>, Monica is focused on how to leverage decision intelligence as a capability to increase decision-making velocity, quality, and optimal outcomes. Passionate about people development, her goal is to build <strong>a legacy of memorable leaders.</strong>
+      </p>
+
+      <div class="expertise-grid">
+        <div class="expertise-item">
+          <div class="expertise-dash"></div>
+          <span class="expertise-text">Enterprise Architecture</span>
+        </div>
+        <div class="expertise-item">
+          <div class="expertise-dash"></div>
+          <span class="expertise-text">AI-Human Collaboration</span>
+        </div>
+        <div class="expertise-item">
+          <div class="expertise-dash"></div>
+          <span class="expertise-text">IT Governance</span>
+        </div>
+        <div class="expertise-item">
+          <div class="expertise-dash"></div>
+          <span class="expertise-text">Decision Intelligence</span>
+        </div>
+        <div class="expertise-item">
+          <div class="expertise-dash"></div>
+          <span class="expertise-text">Organizational Design</span>
+        </div>
+        <div class="expertise-item">
+          <div class="expertise-dash"></div>
+          <span class="expertise-text">Leadership Development</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-name">Monica Lee</span>
+  <span class="footer-note">Decision Intelligence · Tools for thoughtful leaders</span>
+</footer>
+
+<script>
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
