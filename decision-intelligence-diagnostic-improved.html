@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Decision Intelligence Capability Diagnostic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@300;400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy:   #0b0f1a;
+    --navy2:  #111827;
+    --navy3:  #1a2338;
+    --gold:   #c9a84c;
+    --gold2:  #e2c47a;
+    --white:  #ffffff;
+    --white2: #e8edf5;  /* Improved contrast from #dde4f0 */
+
+    /* Traffic-light — WCAG AA on dark backgrounds */
+    --green:     #2ecc71;
+    --green-bg:  rgba(46,204,113,0.12);
+    --green-bdr: rgba(46,204,113,0.35);
+    --orange:    #f39c12;
+    --orange-bg: rgba(243,156,18,0.12);
+    --orange-bdr:rgba(243,156,18,0.35);
+    --red:       #e74c3c;
+    --red-bg:    rgba(231,76,60,0.12);
+    --red-bdr:   rgba(231,76,60,0.35);
+
+    --radius: 4px;
+    --ease:   cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(201,168,76,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(46,204,113,0.03) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+  }
+
+  #app {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0 1.25rem 5rem;
+  }
+
+  .screen { width: 100%; max-width: 780px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-8px); }
+  }
+  .fade-enter { animation: fadeUp 0.45s var(--ease) both; }
+  .fade-exit  { animation: fadeOut 0.18s ease forwards; }
+
+  /* ─── TOP BAR ────────────── */
+  .top-bar {
+    width: 100%; max-width: 780px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.75rem 0 1.25rem;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+    margin-bottom: 2.5rem;
+  }
+  .logo-mark { display: flex; align-items: center; gap: 0.6rem; }
+  .logo-icon {
+    width: 30px; height: 30px; border: 1px solid var(--gold);
+    border-radius: 2px; display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .logo-icon::before { content:''; position:absolute; inset:4px; border:1px solid rgba(201,168,76,0.4); border-radius:1px; }
+  .logo-icon::after  { content:''; position:absolute; width:7px; height:7px; background:var(--gold); border-radius:50%; }
+  .logo-text { font-family:'Roboto Mono',monospace; font-size:0.7rem; font-weight:300; letter-spacing:0.16em; color:var(--white2); text-transform:uppercase; }
+  .top-tag   { font-family:'Roboto Mono',monospace; font-size:0.65rem; letter-spacing:0.13em; color:var(--gold); text-transform:uppercase; border:1px solid rgba(201,168,76,0.3); padding:0.27rem 0.65rem; border-radius:2px; }
+
+  /* ─── EYEBROW ────────────── */
+  .eyebrow {
+    font-family:'Roboto Mono',monospace; font-size:0.7rem; letter-spacing:0.18em;
+    color:var(--gold); text-transform:uppercase; margin-bottom:1.2rem;
+    display:flex; align-items:center; gap:0.65rem;
+  }
+  .eyebrow::before { content:''; display:inline-block; width:20px; height:1px; background:var(--gold); flex-shrink:0; }
+
+  /* ─── INTRO ──────────────── */
+  .intro-title {
+    font-size: clamp(1.9rem, 5.5vw, 3rem);
+    font-weight: 300; line-height: 1.18; color: var(--white); letter-spacing: -0.01em; margin-bottom: 0.4rem;
+  }
+  .intro-title em { font-style: italic; color: var(--gold2); }
+  .intro-divider { width: 40px; height: 1px; background: linear-gradient(90deg,var(--gold),transparent); margin: 1.6rem 0; }
+  .intro-body { font-size: 17px; line-height: 1.8; color: var(--white2); max-width: 560px; margin-bottom: 1.5rem; }
+  .beta-note {
+    font-size: 15px; line-height: 1.75; color: rgba(255,255,255,0.65);  /* Improved from 0.45 */
+    border-left: 2px solid rgba(243,156,18,0.5); padding-left: 1rem;
+    margin-bottom: 2.25rem; max-width: 560px;
+  }
+
+  .domain-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.7rem; margin-bottom:2.25rem; }
+  .domain-card {
+    border:1px solid rgba(201,168,76,0.14); border-radius:var(--radius);
+    padding:1rem 1.2rem; background:rgba(17,24,39,0.5); transition:border-color 0.25s;
+  }
+  .domain-card:hover { border-color:rgba(201,168,76,0.3); }
+  .domain-card-num  { font-family:'Roboto Mono',monospace; font-size:0.6rem; letter-spacing:0.18em; color:var(--gold); margin-bottom:0.35rem; }
+  .domain-card-name { font-size: 15px; font-weight:500; color:var(--white); margin-bottom:0.25rem; line-height: 1.3; }
+  .domain-card-desc { font-size: 13.5px; color: rgba(255,255,255,0.65); line-height: 1.5; margin-bottom: 0.35rem; }
+  .domain-card-anchor { font-size: 13px; color: rgba(255,255,255,0.5); font-style: italic; }
+
+  .meta-grid { display:flex; gap:2rem; margin-bottom:2.25rem; flex-wrap:wrap; }
+  .meta-val   { font-size:2rem; font-weight:300; color:var(--gold2); line-height:1; }
+  .meta-label { font-size:13px; color:rgba(255,255,255,0.55); letter-spacing:0.1em; text-transform:uppercase; margin-top:0.18rem; }
+
+  .btn-primary {
+    display:inline-flex; align-items:center; gap:0.7rem;
+    background:var(--gold); color:var(--navy); border:none;
+    padding:0.95rem 1.9rem;
+    font-family:'Roboto',sans-serif; font-size:14.5px; font-weight:500;
+    letter-spacing:0.12em; text-transform:uppercase; border-radius:var(--radius);
+    cursor:pointer; transition:background 0.2s, transform 0.2s;
+  }
+  .btn-primary:hover { background:var(--gold2); transform:translateY(-1px); }
+  .arrow { transition:transform 0.2s; }
+  .btn-primary:hover .arrow { transform:translateX(3px); }
+
+  /* ─── PROGRESS ───────────── */
+  .progress-wrap { width:100%; margin-bottom:2.75rem; }
+  .progress-meta { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.55rem; }
+  .progress-label { font-family:'Roboto Mono',monospace; font-size:13px; letter-spacing:0.13em; color:rgba(255,255,255,0.5); text-transform:uppercase; }
+  .progress-counter { font-size:16.5px; color:var(--gold2); font-weight:300; }
+  .progress-track { width:100%; height:2px; background:rgba(255,255,255,0.07); border-radius:2px; overflow:hidden; }
+  .progress-fill  { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold2)); border-radius:2px; transition:width 0.5s var(--ease); }
+  .progress-segs  { display:flex; gap:3px; margin-top:5px; }
+  .seg { flex:1; height:2px; border-radius:1px; background:rgba(255,255,255,0.06); transition:background 0.3s; }
+  .seg.filled { background:rgba(201,168,76,0.28); }
+  .seg.active  { background:var(--gold); }
+
+  /* ─── QUESTION ───────────── */
+  .q-domain-label {
+    font-family:'Roboto Mono',monospace; font-size:13px; letter-spacing:0.17em;
+    text-transform:uppercase; color:var(--gold); display:flex; align-items:center; gap:0.5rem; margin-bottom:1.6rem;
+  }
+  .q-domain-dot { width:5px; height:5px; border-radius:50%; }
+
+  .q-text {
+    font-family:'Roboto',sans-serif;
+    font-size:clamp(1.25rem,3.2vw,1.6rem);  /* Increased from 1.2/1.55 */
+    font-weight:300; line-height:1.5; color:var(--white); margin-bottom:2.25rem; min-height:72px;
+  }
+
+  /* ─── SCALE ──────────────── */
+  .scale-wrap { margin-bottom:2.25rem; }
+  .scale-outer-labels {
+    display:flex; justify-content:space-between; margin-bottom:0.9rem;
+    font-size:14px; color:rgba(255,255,255,0.6); font-weight:400;  /* Increased from 13px and 0.4 */
+  }
+  .scale-options { display:flex; gap:0.5rem; }
+
+  .scale-btn {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:0;
+    background:rgba(17,24,39,0.7); border:1px solid rgba(255,255,255,0.1);
+    border-radius:var(--radius); padding:1rem 0.2rem 0.85rem;
+    cursor:pointer; transition:all 0.2s var(--ease); position:relative;
+  }
+  .scale-btn:hover { border-color:rgba(255,255,255,0.25); background:rgba(17,24,39,0.9); }
+  .scale-btn.selected {
+    border-color:var(--gold); background:rgba(201,168,76,0.1);
+    box-shadow: 0 0 0 1px rgba(201,168,76,0.3);
+  }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+  .scale-btn.pulsing { animation:pulse 0.4s ease; }
+
+  .scale-num {
+    font-family:'Roboto Mono',monospace; font-size:1.55rem; font-weight:300;  /* Increased from 1.5rem */
+    color:rgba(255,255,255,0.75); margin-bottom:0.15rem; transition:color 0.2s;  /* Improved from 0.7 */
+  }
+  .scale-btn.selected .scale-num { color:var(--gold); font-weight:400; }
+  .scale-label {
+    font-size:11.5px; color:rgba(255,255,255,0.45); text-align:center; line-height:1.25;  /* Improved from 0.35 */
+    max-width:70px; transition:color 0.2s;
+  }
+  .scale-btn.selected .scale-label { color:rgba(255,255,255,0.65); }
+
+  .req-hint {
+    font-size:13.5px; color:rgba(243,156,18,0.7); font-style:italic;  /* Improved from 0.6 */
+    transition:opacity 0.2s; margin-top:0.6rem;
+  }
+  .req-hint.hidden { opacity:0; pointer-events:none; }
+
+  /* ─── NAVIGATION ─────────── */
+  .nav-row { display:flex; align-items:center; gap:1rem; }
+  .btn-back,.btn-next {
+    display:inline-flex; align-items:center; gap:0.5rem;
+    background:transparent; border:1px solid rgba(255,255,255,0.15);
+    color:rgba(255,255,255,0.75); padding:0.8rem 1.3rem; border-radius:var(--radius);  /* Improved from 0.7 */
+    font-family:'Roboto',sans-serif; font-size:13.5px; font-weight:400;  /* Increased from 13px */
+    letter-spacing:0.08em; text-transform:uppercase; cursor:pointer;
+    transition:all 0.2s;
+  }
+  .btn-back:hover,.btn-next:hover { border-color:rgba(255,255,255,0.3); background:rgba(255,255,255,0.04); }
+  .btn-next:disabled { opacity:0.25; cursor:not-allowed; }
+  .btn-next:disabled:hover { border-color:rgba(255,255,255,0.15); background:transparent; }
+
+  /* ─── RESULTS ────────────── */
+  .results-header { margin-bottom:2.5rem; }
+  .results-title {
+    font-size:clamp(1.75rem,4.5vw,2.5rem); font-weight:300; line-height:1.2;
+    color:var(--white); letter-spacing:-0.01em; margin-bottom:0.65rem;
+  }
+  .results-title em { font-style:italic; color:var(--gold2); }
+  .results-sub { font-size:16px; color:rgba(255,255,255,0.65); max-width:520px; line-height:1.65; }  /* Improved from 0.6 */
+
+  .section-label {
+    font-family:'Roboto Mono',monospace; font-size:12px; letter-spacing:0.17em;
+    color:var(--gold); text-transform:uppercase; margin:2.75rem 0 1.1rem;
+    display:flex; align-items:center; gap:0.6rem;
+  }
+
+  .snapshot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:1.5rem; }
+  .snap-card {
+    background:rgba(17,24,39,0.6); border:1px solid rgba(255,255,255,0.08);
+    border-radius:var(--radius); padding:1.25rem;
+  }
+  .snap-card-label { font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:0.6rem; text-transform:uppercase; letter-spacing:0.08em; }
+  .snap-card-score { font-size:2.5rem; font-weight:300; line-height:1; margin-bottom:0.25rem; }
+  .snap-tier-lbl   { font-size:12.5px; color:rgba(255,255,255,0.5); margin-bottom:0.8rem; }
+  .snap-card-bar   { height:3px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; }
+  .snap-card-bar-fill { height:100%; border-radius:2px; transition:width 0.6s var(--ease); }
+
+  .outcome-explain { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+  .oe-col { background:rgba(17,24,39,0.4); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:1rem; }
+  .oe-col-title { font-size:13px; color:rgba(255,255,255,0.55); margin-bottom:0.7rem; font-weight:500; }
+  .oe-item { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.45rem; }
+  .oe-item:last-child { margin-bottom:0; }
+  .oe-icon { width:15px; height:15px; border-radius:2px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:9px; }
+  .oe-icon.s { background:rgba(46,204,113,0.15); color:#2ecc71; }
+  .oe-icon.r { background:rgba(231,76,60,0.15); color:#e74c3c; }
+  .oe-text { font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.4; }
+
+  .domain-bars { }
+  .dbar-row {
+    display:grid; grid-template-columns:1.8fr 2.2fr 60px 90px; gap:1rem; align-items:center;
+    padding:0.9rem 0; border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .dbar-row:last-child { border-bottom:none; }
+  .dbar-info { }
+  .dbar-name { font-size:14.5px; font-weight:500; color:var(--white); margin-bottom:0.15rem; }
+  .dbar-anchor { font-size:12.5px; color:rgba(255,255,255,0.45); }
+  .dbar-track { height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; }
+  .dbar-fill { height:100%; border-radius:3px; transition:width 0.6s var(--ease); }
+  .dbar-score { font-size:1.5rem; font-weight:300; text-align:right; }
+  .dbar-tier { text-align:right; }
+
+  .tier-badge {
+    display:inline-block; font-size:11px; padding:0.2rem 0.5rem; border-radius:2px;
+    font-weight:400; letter-spacing:0.05em; text-transform:uppercase;
+  }
+  .tier-excelling   { background:var(--green-bg); color:var(--green); border:1px solid var(--green-bdr); }
+  .tier-developing  { background:var(--orange-bg); color:var(--orange); border:1px solid var(--orange-bdr); }
+  .tier-struggling  { background:var(--red-bg); color:var(--red); border:1px solid var(--red-bdr); }
+
+  .interp-section { }
+  .interp-card { border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius); margin-bottom:0.7rem; background:rgba(17,24,39,0.3); }
+  .interp-card-header {
+    display:flex; align-items:center; justify-content:space-between; padding:1.15rem 1.3rem;
+    cursor:pointer; transition:background 0.2s;
+  }
+  .interp-card-header:hover { background:rgba(255,255,255,0.02); }
+  .interp-card-header.open { background:rgba(255,255,255,0.03); }
+  .interp-card-title-wrap { display:flex; align-items:center; gap:0.8rem; }
+  .interp-card-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .interp-card-title { font-size:15.5px; font-weight:500; color:var(--white); }
+  .interp-toggle {
+    width:22px; height:22px; border:1px solid rgba(255,255,255,0.15); border-radius:2px;
+    display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0;
+  }
+  .interp-toggle svg { width:12px; height:12px; stroke:rgba(255,255,255,0.5); transition:transform 0.2s; }
+  .interp-toggle.open svg { transform:rotate(180deg); }
+
+  .interp-card-body {
+    max-height:0; overflow:hidden; transition:max-height 0.35s var(--ease);
+  }
+  .interp-card-body.open { max-height:1200px; }
+  .interp-inner { padding:0 1.3rem 1.3rem; }
+  .interp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1rem; }
+  .interp-box { background:rgba(17,24,39,0.5); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius); padding:0.95rem; }
+  .interp-box-label { font-size:11.5px; color:rgba(255,255,255,0.45); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.08em; }
+  .interp-box-val { font-size:1.8rem; font-weight:300; line-height:1; margin-bottom:0.15rem; }
+  .interp-box-tier { font-size:11.5px; color:rgba(255,255,255,0.45); }
+
+  .interp-text-section { margin-bottom:1rem; }
+  .interp-text-section:last-child { margin-bottom:0; }
+  .interp-text-label { font-size:12px; color:var(--gold); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem; }
+  .interp-text-content { font-size:14px; color:rgba(255,255,255,0.65); line-height:1.7; }
+  .interp-text-content ul { list-style:none; padding:0; margin:0.4rem 0 0 0; }
+  .interp-text-content li { margin-bottom:0.35rem; padding-left:1.2rem; position:relative; }
+  .interp-text-content li::before { content:'•'; position:absolute; left:0; color:var(--gold); }
+
+  .friction-box, .reflection-box {
+    background:rgba(17,24,39,0.4); border:1px solid rgba(255,255,255,0.06);
+    border-radius:var(--radius); padding:1rem; margin-bottom:1rem;
+  }
+  .friction-box:last-child, .reflection-box:last-child { margin-bottom:0; }
+  .friction-label, .reflection-label {
+    font-size:12px; color:rgba(243,156,18,0.8); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;
+  }
+  .reflection-label { color:rgba(46,204,113,0.8); }
+  .friction-text, .reflection-text { font-size:14px; color:rgba(255,255,255,0.65); line-height:1.7; }
+
+  .action-section { margin-bottom:2.5rem; }
+  .action-block { background:rgba(17,24,39,0.5); border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius); padding:1.5rem; }
+  .action-block-header { margin-bottom:1.25rem; }
+  .action-block-title { font-size:18px; font-weight:500; color:var(--white); margin-bottom:0.35rem; }
+  .action-block-sub { font-size:13.5px; color:rgba(255,255,255,0.5); }
+  .action-type-label {
+    font-size:12px; color:var(--gold); text-transform:uppercase; letter-spacing:0.1em; margin:1.25rem 0 0.6rem;
+  }
+  .action-type-label:first-child { margin-top:0; }
+  .action-list { list-style:none; padding:0; margin:0; }
+  .action-list li {
+    display:flex; align-items:flex-start; gap:0.75rem; margin-bottom:0.65rem;
+    font-size:14px; color:rgba(255,255,255,0.65); line-height:1.65;
+  }
+  .action-list li:last-child { margin-bottom:0; }
+  .action-bullet { color:var(--gold); font-size:10px; margin-top:0.3rem; flex-shrink:0; }
+
+  .results-footer { margin-top:3rem; }
+  .beta-footer-box {
+    background:rgba(243,156,18,0.06); border:1px solid rgba(243,156,18,0.25);
+    border-radius:var(--radius); padding:1.5rem; margin-bottom:1.5rem;
+  }
+  .beta-footer-label { font-size:13px; color:rgba(243,156,18,0.9); font-weight:500; margin-bottom:0.6rem; }
+  .beta-footer-text { font-size:14.5px; color:rgba(255,255,255,0.7); line-height:1.75; }
+  .beta-footer-text strong { color:rgba(255,255,255,0.85); font-weight:500; }
+
+  .footer-row { display:flex; justify-content:center; }
+  .btn-restart {
+    background:transparent; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.75);
+    padding:0.85rem 1.6rem; border-radius:var(--radius);
+    font-family:'Roboto',sans-serif; font-size:13.5px; font-weight:400;
+    letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-restart:hover { border-color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.04); }
+
+  /* ─── RESPONSIVE ─────────── */
+  @media (max-width:700px) {
+    .domain-grid { grid-template-columns:1fr; }
+    .snapshot-grid { grid-template-columns:1fr; }
+    .outcome-explain { grid-template-columns:1fr; }
+    .dbar-row { grid-template-columns:1fr; gap:0.5rem; }
+    .dbar-track { grid-column:1; grid-row:2; }
+    .dbar-score { grid-column:1; grid-row:3; text-align:left; margin-top:0.3rem; }
+    .dbar-tier { grid-column:1; grid-row:4; text-align:left; margin-top:0.2rem; }
+    .interp-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="app"><div id="screen" class="screen"></div></div>
+
+<script>
+/* ══════════════════════════════════════
+   DATA & STATE
+══════════════════════════════════════ */
+const DOMAINS = [
+  {
+    id: 'governance',
+    num: 'Domain 01',
+    name: 'Decision Governance & Clarity',
+    shortName: 'Decision Governance & Clarity',
+    desc: 'Clarity of roles, ownership, and decision rights.',
+    anchor: 'Territory and unclear accountability'
+  },
+  {
+    id: 'systems',
+    num: 'Domain 02',
+    name: 'Systems & Structural Awareness',
+    shortName: 'Systems & Structural Awareness',
+    desc: 'Understanding cross-functional impact and system effects.',
+    anchor: 'Siloed decisions and unintended consequences'
+  },
+  {
+    id: 'information',
+    num: 'Domain 03',
+    name: 'Information Discipline',
+    shortName: 'Information Discipline',
+    desc: 'How information is gathered, validated, and used.',
+    anchor: 'Gaps, noise, or lack of traceability'
+  },
+  {
+    id: 'adaptive',
+    num: 'Domain 04',
+    name: 'Adaptive Judgment Under Uncertainty',
+    shortName: 'Adaptive Judgment Under Uncertainty',
+    desc: 'Making sound tradeoffs when conditions are ambiguous.',
+    anchor: 'Avoided or mismanaged tradeoffs'
+  }
+];
+
+const DCOLORS = ['#c9a84c','#2ecc71','#3498db','#9b59b6'];
+
+const QUESTIONS = [
+  {domain:0,text:'When launching a new strategic initiative, how clearly do you typically know who has final decision authority at each stage?'},
+  {domain:0,text:'When multiple teams could own a decision, how often do you experience ambiguity or conflict over who should make the call?'},
+  {domain:0,text:'How often do you find yourself making decisions that someone else later reverses or reinterprets without your involvement?'},
+  {domain:1,text:'Before making a significant decision, how thoroughly do you map the potential ripple effects across other teams, functions, or systems?'},
+  {domain:1,text:'How often do decisions you make have unintended negative consequences in areas you didn\'t anticipate?'},
+  {domain:1,text:'When considering a change, how confident are you in predicting its second-order and third-order effects on the organization?'},
+  {domain:2,text:'When making decisions, how systematically do you gather and validate the information you rely on?'},
+  {domain:2,text:'How often do you find yourself unable to trace back why a past decision was made or what data informed it?'},
+  {domain:2,text:'When critical information is missing or uncertain, how comfortable are you making the decision anyway?'},
+  {domain:3,text:'When facing decisions with unclear outcomes, how well do you identify and manage competing tradeoffs?'},
+  {domain:3,text:'How often do you delay important decisions because the "right answer" isn\'t obvious?'},
+  {domain:3,text:'When conditions change unexpectedly, how quickly can you revise your assumptions and adapt your decisions?'}
+];
+
+const SCALE_LABELS = [
+  'Never / Not at all',
+  'Rarely',
+  'Sometimes',
+  'Often',
+  'Always / Extremely'
+];
+
+const SCORING = {
+  governance:   { qs:[0,1,2], reverse:[1,2] },
+  systems:      { qs:[3,4,5], reverse:[4] },
+  information:  { qs:[6,7,8], reverse:[7] },
+  adaptive:     { qs:[9,10,11], reverse:[10] }
+};
+
+const OUTCOME_WEIGHTS = {
+  velocity: { governance:0.35, systems:0.15, information:0.25, adaptive:0.25 },
+  quality:  { governance:0.15, systems:0.35, information:0.30, adaptive:0.20 },
+  performance:{ governance:0.20, systems:0.25, information:0.20, adaptive:0.35 }
+};
+
+const INTERPRETATIONS = {
+  governance: {
+    excelling: 'You have clear role definitions and well-structured authority. Teams know who decides what, reducing ambiguity and territorial friction.',
+    developing: 'Some decisions have clear ownership, but gaps remain. Occasional turf battles or confusion about who should decide.',
+    struggling: 'Frequent ambiguity about who owns decisions. This creates delays, conflict, and rework as teams step on each other\'s toes.'
+  },
+  systems: {
+    excelling: 'You consistently anticipate cross-functional impacts. Decisions account for downstream effects and system-level interactions.',
+    developing: 'You think about ripple effects sometimes, but blind spots remain. Unintended consequences appear more often than you\'d like.',
+    struggling: 'Decisions are made in silos with limited consideration of broader impacts. Surprises and negative side-effects are common.'
+  },
+  information: {
+    excelling: 'You systematically gather, validate, and document decision inputs. It\'s easy to trace why decisions were made and what informed them.',
+    developing: 'Information practices are inconsistent. Some decisions are well-documented, others rely on gut feel or incomplete data.',
+    struggling: 'Decision-making lacks rigor. Key information is missing, unvalidated, or undocumented, making it hard to learn or justify choices.'
+  },
+  adaptive: {
+    excelling: 'You\'re comfortable with ambiguity and skilled at managing tradeoffs. You adapt quickly when conditions shift.',
+    developing: 'You handle some uncertainty well, but struggle with highly ambiguous situations or complex tradeoffs.',
+    struggling: 'Uncertainty paralyzes you. You delay decisions waiting for clarity, or make choices without adequately weighing competing priorities.'
+  }
+};
+
+const ACTIONS = {
+  governance: {
+    behavioral: [
+      'Before initiating a decision, explicitly identify who owns it and communicate that to all stakeholders.',
+      'When ambiguity arises, escalate for clarity rather than assuming or proceeding without alignment.',
+      'Regularly audit your team\'s decision inventory: who decides what, by when, and with whose input.'
+    ],
+    structural: [
+      'Implement a RACI matrix (Responsible, Accountable, Consulted, Informed) for recurring decision types.',
+      'Establish clear escalation paths and decision thresholds for your domain.',
+      'Create shared mental models through decision-making frameworks that codify authority and process.'
+    ],
+    reflection: 'Strong governance isn\'t about control—it\'s about clarity. When everyone knows who decides, friction drops and velocity rises.'
+  },
+  systems: {
+    behavioral: [
+      'Before finalizing a decision, ask: "What systems or teams will this affect, and how?"',
+      'Proactively consult with adjacent functions to surface blind spots early.',
+      'After implementation, conduct brief retrospectives to identify unintended consequences and learn from them.'
+    ],
+    structural: [
+      'Map critical interdependencies visually (e.g., value stream maps, system diagrams).',
+      'Build cross-functional checkpoints into your decision process for high-impact choices.',
+      'Use pre-mortems: imagine the decision failed—what systemic factor caused it?'
+    ],
+    reflection: 'Systems thinking prevents expensive surprises. The best decisions account for the whole, not just the part you control.'
+  },
+  information: {
+    behavioral: [
+      'Define what "good enough" information looks like before starting analysis—avoid analysis paralysis.',
+      'Document key assumptions, data sources, and rationale in a decision log.',
+      'Challenge your own data: Is it current? Validated? Biased?'
+    ],
+    structural: [
+      'Adopt lightweight decision documentation templates (e.g., ADRs: Architecture Decision Records).',
+      'Create a single source of truth for critical metrics and decision inputs.',
+      'Implement peer review or red-team validation for high-stakes decisions.'
+    ],
+    reflection: 'Information discipline isn\'t about perfection—it\'s about traceability, validation, and knowing what you don\'t know.'
+  },
+  adaptive: {
+    behavioral: [
+      'Practice making small, reversible decisions quickly to build comfort with uncertainty.',
+      'Explicitly name the tradeoffs in every major decision—don\'t pretend they don\'t exist.',
+      'After making a decision under uncertainty, set a review date to adjust if conditions change.'
+    ],
+    structural: [
+      'Use decision frameworks that force tradeoff clarity (e.g., weighted scoring, options analysis).',
+      'Build in "circuit breakers": predefined triggers that force you to revisit assumptions.',
+      'Adopt an experimental mindset: treat uncertain decisions as hypotheses to test, not bets to win.'
+    ],
+    reflection: 'Adaptability under uncertainty is a meta-skill. The faster you learn, the less the initial choice matters.'
+  }
+};
+
+let answers = Array(12).fill(null);
+
+/* ══════════════════════════════════════
+   INIT QUESTIONS
+══════════════════════════════════════ */
+function initQuestions() {
+  answers = Array(12).fill(null);
+}
+
+/* ══════════════════════════════════════
+   SCORING
+══════════════════════════════════════ */
+function computeScores() {
+  const raw = {};
+  for (const [key, cfg] of Object.entries(SCORING)) {
+    let sum = 0;
+    for (const qIdx of cfg.qs) {
+      let val = answers[qIdx];
+      if (cfg.reverse && cfg.reverse.includes(qIdx)) val = 5 - val;
+      sum += val;
+    }
+    raw[key] = Math.round((sum / (cfg.qs.length * 4)) * 100);
+  }
+
+  const outcomes = {};
+  for (const [outcome, weights] of Object.entries(OUTCOME_WEIGHTS)) {
+    let weighted = 0;
+    for (const [dom, w] of Object.entries(weights)) {
+      weighted += raw[dom] * w;
+    }
+    outcomes[outcome] = Math.round(weighted);
+  }
+
+  return { domains: raw, outcomes };
+}
+
+function tierKey(score) {
+  if (score >= 70) return 'excelling';
+  if (score >= 40) return 'developing';
+  return 'struggling';
+}
+function tierLabel(score) {
+  if (score >= 70) return 'Excelling';
+  if (score >= 40) return 'Developing';
+  return 'Struggling';
+}
+function tierColor(score) {
+  if (score >= 70) return 'var(--green)';
+  if (score >= 40) return 'var(--orange)';
+  return 'var(--red)';
+}
+function barGrad(score) {
+  if (score >= 70) return 'linear-gradient(90deg, #2ecc7188, #2ecc71)';
+  if (score >= 40) return 'linear-gradient(90deg, #f39c1288, #f39c12)';
+  return 'linear-gradient(90deg, #e74c3c88, #e74c3c)';
+}
+
+function buildImpact(ds) {
+  const [g,sy,inf,ad] = ds;
+  const N = ['Governance','Transversal Impact','Traceability','Tradeoffs'];
+  const vArr = [
+    {d:g,  n:N[0], t:'Clear decision rights eliminate the ownership disputes that delay forward momentum.'},
+    {d:ad, n:N[3], t:'Explicit tradeoffs reduce decision stall and support confident forward movement.'},
+    {d:sy, n:N[1], t:'Systemic awareness prevents costly detours caused by unexamined dependencies.'},
+    {d:inf,n:N[2], t:'Verified information reduces rework from decisions built on faulty inputs.'}
+  ];
+  const qArr = [
+    {d:sy, n:N[1], t:'Structural awareness raises quality by accounting for cross-functional consequences.'},
+    {d:inf,n:N[2], t:'Information discipline reduces the risk of decisions built on unverified assumptions.'},
+    {d:ad, n:N[3], t:'Explicit tradeoff naming creates shared understanding and prevents hidden compromises.'},
+    {d:g,  n:N[0], t:'Accountability clarity ensures decisions are owned and followed through with rigor.'}
+  ];
+  const pArr = [
+    {d:sy, n:N[1], t:'Systemic thinking connects individual decisions to organizational outcomes.'},
+    {d:ad, n:N[3], t:'Adaptive judgment maintains momentum without sacrificing strategic coherence.'},
+    {d:g,  n:N[0], t:'Governance clarity ensures decisions translate to action with clear ownership.'},
+    {d:inf,n:N[2], t:'Information traceability supports organizational learning and performance continuity.'}
+  ];
+  const top = arr=>[...arr].sort((a,b)=>b.d-a.d)[0];
+  const bot = arr=>[...arr].sort((a,b)=>a.d-b.d)[0];
+  return {
+    velocity:    {s:top(vArr),r:bot(vArr)},
+    quality:     {s:top(qArr),r:bot(qArr)},
+    performance: {s:top(pArr),r:bot(pArr)}
+  };
+}
+
+/* ══════════════════════════════════════
+   RENDER
+══════════════════════════════════════ */
+function renderIntro() {
+  return `<div class="screen fade-enter">
+    <div class="top-bar">
+      <div class="logo-mark">
+        <div class="logo-icon"></div>
+        <div class="logo-text">Decision Intelligence</div>
+      </div>
+      <div class="top-tag">Diagnostic</div>
+    </div>
+
+    <div class="eyebrow">Self-Assessment Tool</div>
+    <h1 class="intro-title">Decision <em>Intelligence</em> Diagnostic</h1>
+    <div class="intro-divider"></div>
+
+    <div class="intro-body">
+      This diagnostic helps you reflect on your decision-making capabilities.<br>
+      It provides insight into how you navigate complexity, uncertainty, and competing priorities at work.<br><br>
+      It is designed for self-reflection — not as a formal evaluation.
+    </div>
+
+    <div class="beta-note">
+      <strong>⚠ Beta version</strong> — Based on ongoing research and evolving frameworks. Scores are indicative, not definitive. Use results as a starting point for reflection and conversation.
+    </div>
+
+    <div class="domain-grid">
+      ${DOMAINS.map(d => `
+        <div class="domain-card">
+          <div class="domain-card-num">${d.num}</div>
+          <div class="domain-card-name">${d.name}</div>
+          <div class="domain-card-desc">${d.desc}</div>
+          <div class="domain-card-anchor">Friction: ${d.anchor}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="meta-grid">
+      <div><div class="meta-val">12</div><div class="meta-label">Questions</div></div>
+      <div><div class="meta-val">4</div><div class="meta-label">Domains</div></div>
+      <div><div class="meta-val">~5</div><div class="meta-label">Minutes</div></div>
+    </div>
+
+    <button class="btn-primary" onclick="startDiagnostic()">
+      Begin Assessment
+      <span class="arrow">→</span>
+    </button>
+  </div>`;
+}
+
+function renderQuestion(idx) {
+  const q = QUESTIONS[idx];
+  const d = DOMAINS[q.domain];
+  const pct = ((idx + 1) / 12) * 100;
+  const selected = answers[idx];
+
+  const segHTML = Array.from({length:12}, (_,i) => {
+    let cls = 'seg';
+    if (i < idx) cls += ' filled';
+    if (i === idx) cls += ' active';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  return `<div class="screen fade-enter">
+    <div class="top-bar">
+      <div class="logo-mark">
+        <div class="logo-icon"></div>
+        <div class="logo-text">Decision Intelligence</div>
+      </div>
+      <div class="top-tag">Question ${idx+1} / 12</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <div class="progress-label">Progress</div>
+        <div class="progress-counter">${idx+1} / 12</div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-segs">${segHTML}</div>
+    </div>
+
+    <div class="q-domain-label">
+      <div class="q-domain-dot" style="background:${DCOLORS[q.domain]}"></div>
+      ${d.num} · ${d.shortName}
+    </div>
+
+    <div class="q-text">${q.text}</div>
+
+    <div class="scale-wrap">
+      <div class="scale-outer-labels">
+        <span>${SCALE_LABELS[0]}</span>
+        <span>${SCALE_LABELS[4]}</span>
+      </div>
+      <div class="scale-options" id="so-${idx}">
+        ${[1,2,3,4,5].map(val => `
+          <button
+            id="sb-${idx}-${val}"
+            class="scale-btn ${selected === val ? 'selected' : ''}"
+            onclick="selectAnswer(${idx}, ${val})"
+          >
+            <div class="scale-num">${val}</div>
+            <div class="scale-label">${SCALE_LABELS[val-1]}</div>
+          </button>
+        `).join('')}
+      </div>
+      <div id="rh-${idx}" class="req-hint ${selected !== null ? 'hidden' : ''}">Please select a response to continue</div>
+    </div>
+
+    <div class="nav-row">
+      ${idx > 0 ? `<button class="btn-back" onclick="goBack(${idx})">← Back</button>` : ''}
+      <button id="bn-${idx}" class="btn-next" ${selected === null ? 'disabled' : ''} onclick="goNext(${idx})">
+        ${idx === 11 ? 'View Results' : 'Next'} →
+      </button>
+    </div>
+  </div>`;
+}
+
+function renderResults() {
+  const { domains, outcomes } = computeScores();
+  const ds = [domains.governance, domains.systems, domains.information, domains.adaptive];
+  const vel  = outcomes.velocity;
+  const qual = outcomes.quality;
+  const perf = outcomes.performance;
+
+  const impact = buildImpact(ds);
+
+  const lowestIdx = ds.indexOf(Math.min(...ds));
+  const act = ACTIONS[['governance','systems','information','adaptive'][lowestIdx]];
+
+  function oeItem(type, impactObj) {
+    return `<div class="oe-item">
+      <div class="oe-icon ${type}">${type === 's' ? '↑' : '↓'}</div>
+      <div class="oe-text"><strong>${impactObj.n}</strong> (${impactObj.d})</div>
+    </div>`;
+  }
+
+  const interpCards = DOMAINS.map((d,i) => {
+    const score = ds[i];
+    const tier = tierKey(score);
+    const interp = INTERPRETATIONS[d.id][tier];
+    const actions = ACTIONS[d.id];
+    return `<div class="interp-card">
+      <div class="interp-card-header" onclick="toggleInterp(this)">
+        <div class="interp-card-title-wrap">
+          <div class="interp-card-dot" style="background:${DCOLORS[i]}"></div>
+          <div class="interp-card-title">${d.num} · ${d.shortName}</div>
+        </div>
+        <div class="interp-toggle">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+      </div>
+      <div class="interp-card-body">
+        <div class="interp-inner">
+          <div class="interp-grid">
+            <div class="interp-box">
+              <div class="interp-box-label">Score</div>
+              <div class="interp-box-val" style="color:${tierColor(score)}">${score}</div>
+              <div class="interp-box-tier">${tierLabel(score)}</div>
+            </div>
+            <div class="interp-box">
+              <div class="interp-box-label">Friction Type</div>
+              <div class="interp-box-val" style="font-size:1rem; margin-top:0.3rem; color:rgba(255,255,255,0.7)">${d.anchor}</div>
+            </div>
+            <div class="interp-box">
+              <div class="interp-box-label">Domain ID</div>
+              <div class="interp-box-val" style="font-size:1rem; margin-top:0.3rem; color:${DCOLORS[i]}">${d.id}</div>
+            </div>
+          </div>
+          <div class="interp-text-section">
+            <div class="interp-text-label">Interpretation</div>
+            <div class="interp-text-content">${interp}</div>
+          </div>
+          <div class="friction-box">
+            <div class="friction-label">Friction Risk</div>
+            <div class="friction-text">${d.anchor}</div>
+          </div>
+          <div class="reflection-box">
+            <div class="reflection-label">Leadership Reflection</div>
+            <div class="reflection-text">${ACTIONS[['governance','systems','information','adaptive'][i]].reflection}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="screen fade-enter">
+
+    <div class="results-header">
+      <div class="eyebrow">Assessment Complete</div>
+      <h2 class="results-title">Your <em>Decision Intelligence</em> Profile</h2>
+      <p class="results-sub">Results reflect your behavioral patterns across four decision-making domains.</p>
+    </div>
+
+    <div class="section-label">— Outcome Scores</div>
+    <div class="snapshot-grid">
+      ${[
+        {label:'Decision Velocity',    score:vel,  key:'vel'},
+        {label:'Decision Quality',     score:qual, key:'qual'},
+        {label:'Decision Performance', score:perf, key:'perf'}
+      ].map(({label,score})=>`
+        <div class="snap-card">
+          <div class="snap-card-label">${label}</div>
+          <div class="snap-card-score" style="color:${tierColor(score)}">${score}</div>
+          <div class="snap-tier-lbl">${tierLabel(score)}</div>
+          <div class="snap-card-bar"><div class="snap-card-bar-fill" style="width:${score}%;background:${barGrad(score)}"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="outcome-explain">
+      <div class="oe-col">
+        <div class="oe-col-title">What shapes Velocity</div>
+        ${oeItem('s', impact.velocity.s)}
+        ${oeItem('r', impact.velocity.r)}
+      </div>
+      <div class="oe-col">
+        <div class="oe-col-title">What shapes Quality</div>
+        ${oeItem('s', impact.quality.s)}
+        ${oeItem('r', impact.quality.r)}
+      </div>
+      <div class="oe-col">
+        <div class="oe-col-title">What shapes Performance</div>
+        ${oeItem('s', impact.performance.s)}
+        ${oeItem('r', impact.performance.r)}
+      </div>
+    </div>
+
+    <div class="section-label">— Domain Scores</div>
+    <div class="domain-bars" style="margin-bottom:2.75rem">
+      ${DOMAINS.map((d,i)=>{
+        const score=ds[i];
+        return `<div class="dbar-row">
+          <div class="dbar-info"><div class="dbar-name">${d.shortName}</div><div class="dbar-anchor">${d.anchor}</div></div>
+          <div class="dbar-track"><div class="dbar-fill" style="width:${score}%;background:linear-gradient(90deg,${DCOLORS[i]}88,${DCOLORS[i]})"></div></div>
+          <div class="dbar-score" style="color:${DCOLORS[i]}">${score}</div>
+          <div class="dbar-tier"><span class="tier-badge tier-${tierKey(score)}">${tierLabel(score)}</span></div>
+        </div>`;}).join('')}
+    </div>
+
+    <div class="section-label">— Domain Interpretation, Friction Risk & Reflection</div>
+    <div class="interp-section">${interpCards}</div>
+
+    <div class="action-section">
+      <div class="section-label">— Priority Development Area</div>
+      <div class="action-block">
+        <div class="action-block-header">
+          <div class="action-block-title">${DOMAINS[lowestIdx].name}</div>
+          <div class="action-block-sub">Score ${ds[lowestIdx]} · ${tierLabel(ds[lowestIdx])} · Friction: ${DOMAINS[lowestIdx].anchor}</div>
+        </div>
+        <div class="action-block-body">
+          <div class="action-type-label">Behavioral Adjustments</div>
+          <ul class="action-list">${act.behavioral.map(b=>`<li><span class="action-bullet">◆</span><span>${b}</span></li>`).join('')}</ul>
+          <div class="action-type-label">Structural Adjustments</div>
+          <ul class="action-list">${act.structural.map(s=>`<li><span class="action-bullet">◇</span><span>${s}</span></li>`).join('')}</ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-footer">
+      <div class="beta-footer-box">
+        <div class="beta-footer-label">⚠ Beta Diagnostic — Important Note</div>
+        <div class="beta-footer-text">
+          This is a <strong>beta instrument</strong> based on continuing research into decision intelligence and organizational behavior. It is <strong>not a validated psychometric test</strong>, and scores should not be interpreted as fixed or definitive assessments of your capabilities.<br><br>
+          Results are intended to support <strong>structured reflection</strong> — to help you notice patterns, start conversations, and identify areas worth developing. Your scores reflect behavioral tendencies in the way you recognize yourself right now. They can and do shift with awareness and deliberate practice.<br><br>
+          <strong>Use this as a mirror, not a verdict.</strong>
+        </div>
+      </div>
+      <div class="footer-row">
+        <button class="btn-restart" onclick="restart()">Retake Assessment</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════
+   INTERACTIONS — in-place update, no re-render
+══════════════════════════════════════ */
+function startDiagnostic() {
+  initQuestions();
+  transitionTo(() => renderQuestion(0));
+}
+
+function selectAnswer(idx, val) {
+  answers[idx] = val;
+
+  // Update buttons in-place (no page reload)
+  document.querySelectorAll(`#so-${idx} .scale-btn`).forEach(btn => {
+    btn.classList.remove('selected','pulsing');
+  });
+  const chosen = document.getElementById(`sb-${idx}-${val}`);
+  if (chosen) {
+    chosen.classList.add('selected','pulsing');
+    setTimeout(() => chosen.classList.remove('pulsing'), 600);
+  }
+
+  // Unlock Next
+  const next = document.getElementById(`bn-${idx}`);
+  if (next) next.disabled = false;
+
+  // Hide hint
+  const hint = document.getElementById(`rh-${idx}`);
+  if (hint) hint.classList.add('hidden');
+}
+
+function goNext(idx) {
+  if (answers[idx] === null) return;
+  if (idx === 11) {
+    transitionTo(() => renderResults());
+    setTimeout(initAnimations, 120);
+    return;
+  }
+  transitionTo(() => renderQuestion(idx + 1));
+}
+
+function goBack(idx) {
+  if (idx === 0) return;
+  transitionTo(() => renderQuestion(idx - 1));
+}
+
+function toggleInterp(header) {
+  const body  = header.nextElementSibling;
+  const arrow = header.querySelector('.interp-toggle');
+  const open  = body.classList.contains('open');
+  body.classList.toggle('open', !open);
+  header.classList.toggle('open', !open);
+  arrow.classList.toggle('open', !open);
+}
+
+function restart() { transitionTo(() => renderIntro()); }
+
+/* ══════════════════════════════════════
+   TRANSITIONS
+══════════════════════════════════════ */
+function transitionTo(fn) {
+  const el = document.getElementById('screen');
+  el.classList.add('fade-exit');
+  setTimeout(() => {
+    el.classList.remove('fade-exit');
+    el.innerHTML = fn();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }, 185);
+}
+
+/* ══════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════ */
+function initAnimations() {
+  document.querySelectorAll('.dbar-fill, .snap-card-bar-fill').forEach(f => {
+    const t = f.style.width; f.style.width = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => { f.style.width = t; }));
+  });
+  setTimeout(() => {
+    const first = document.querySelector('.interp-card-header');
+    if (first) toggleInterp(first);
+  }, 350);
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('screen').innerHTML = renderIntro();
+});
+</script>
+</body>
+</html>
