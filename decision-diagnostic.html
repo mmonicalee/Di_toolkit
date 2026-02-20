@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Impact Diagnostic</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0D0D0D;
+    --gold: #B8922A;
+    --gold-pale: #F5EDD8;
+    --white: #FFFFFF;
+    --off-white: #FAFAF8;
+    --mid-gray: #6B6B6B;
+    --light-gray: #E8E8E5;
+    --blue: #4A7FA5;
+    --blue-pale: #EDF2F7;
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--off-white);
+    color: var(--black);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* LANG BAR */
+  #lang-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: flex-end; align-items: center;
+    padding: 10px 20px; background: var(--black); gap: 4px;
+  }
+  .lang-btn {
+    font-family: var(--font-body); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 5px 12px; border: 1px solid transparent; border-radius: 2px;
+    cursor: pointer; transition: all 0.2s; background: transparent; color: var(--mid-gray);
+  }
+  .lang-btn.active { color: var(--gold); border-color: var(--gold); }
+  .lang-btn:hover:not(.active) { color: var(--white); }
+
+  /* PROGRESS */
+  #progress-bar-wrap { position: fixed; top: 41px; left: 0; right: 0; z-index: 99; height: 3px; background: var(--light-gray); }
+  #progress-bar { height: 100%; background: var(--gold); transition: width 0.5s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+
+  /* SCREENS */
+  .screen { display: none; min-height: 100vh; padding-top: 60px; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* WELCOME */
+  #screen-welcome { justify-content: center; align-items: center; text-align: center; padding: 60px 24px 48px; }
+  .welcome-inner { max-width: 480px; }
+  .welcome-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+  .welcome-title { font-family: var(--font-display); font-size: clamp(36px, 8vw, 54px); font-weight: 700; line-height: 1.1; margin-bottom: 16px; }
+  .gold-divider { width: 40px; height: 2px; background: var(--gold); margin: 0 auto 18px; }
+  .welcome-meta { font-size: 13px; font-weight: 600; color: var(--black); margin-bottom: 12px; letter-spacing: 0.04em; }
+  .welcome-sub { font-size: 13px; color: var(--mid-gray); line-height: 1.65; margin-bottom: 22px; }
+  .disclaimer-box {
+    background: var(--gold-pale); border-left: 3px solid var(--gold);
+    padding: 14px 18px; margin-bottom: 28px; border-radius: 0 4px 4px 0; text-align: left;
+  }
+  .disclaimer-box p { font-size: 12px; line-height: 1.7; color: #4A4A48; }
+  .optional-fields { width: 100%; margin-bottom: 28px; }
+  .optional-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid-gray); margin-bottom: 10px; font-weight: 500; text-align: left; }
+  .opt-input {
+    width: 100%; padding: 12px 16px; border: 1px solid var(--light-gray);
+    background: var(--white); font-family: var(--font-body); font-size: 15px; color: var(--black);
+    border-radius: 2px; outline: none; transition: border-color 0.2s;
+  }
+  .opt-input:focus { border-color: var(--gold); }
+  .opt-input::placeholder { color: #BBBBB8; }
+
+  /* BUTTONS */
+  .btn-primary {
+    display: inline-block; width: 100%; max-width: 320px; padding: 16px 32px;
+    background: var(--black); color: var(--white); font-family: var(--font-body);
+    font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    border: none; border-radius: 2px; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #2A2A2A; }
+  .btn-back {
+    background: transparent; color: var(--mid-gray); border: none;
+    font-family: var(--font-body); font-size: 12px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; padding: 8px 0; transition: color 0.2s;
+  }
+  .btn-back:hover { color: var(--black); }
+
+  /* QUESTION SCREEN */
+  #screen-question { justify-content: space-between; padding: 60px 24px 32px; }
+  .q-header { padding-top: 24px; }
+  .q-counter { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .q-domain { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid-gray); margin-bottom: 28px; }
+  .q-text { font-family: var(--font-display); font-size: clamp(22px, 5.5vw, 32px); font-weight: 600; line-height: 1.25; max-width: 560px; }
+  .q-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .q-footer { padding-bottom: 8px; }
+
+  /* LIKERT */
+  .likert-wrap { margin: 40px 0 32px; }
+  .likert-labels { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  .likert-label-text { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mid-gray); max-width: 80px; text-align: center; }
+  .likert-buttons { display: flex; gap: 8px; justify-content: space-between; }
+  .likert-btn {
+    flex: 1; aspect-ratio: 1; max-width: 60px; border: 1.5px solid var(--light-gray);
+    background: var(--white); border-radius: 4px; font-family: var(--font-body);
+    font-size: 17px; font-weight: 500; color: var(--black); cursor: pointer;
+    transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+  }
+  .likert-btn:hover { border-color: var(--gold); background: var(--gold-pale); }
+  .likert-btn.selected { background: var(--black); border-color: var(--black); color: var(--white); }
+
+  /* RESULTS */
+  #screen-results { padding: 60px 0 0; background: var(--white); }
+  .results-header { background: var(--black); color: var(--white); padding: 32px 24px 28px; text-align: center; }
+  .results-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; font-weight: 600; }
+  .results-name { font-size: 13px; color: #AAAAAA; margin-bottom: 6px; }
+  .results-title { font-family: var(--font-display); font-size: clamp(26px, 6vw, 38px); font-weight: 700; line-height: 1.15; }
+  .results-body { padding: 0 20px 32px; max-width: 560px; margin: 0 auto; width: 100%; }
+  .score-section { padding: 20px 0 14px; border-bottom: 1px solid var(--light-gray); }
+  .score-section-title { font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .score-block-insight { font-size: 12px; line-height: 1.65; color: var(--mid-gray); margin-bottom: 14px; font-style: italic; }
+  .score-row { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
+  .score-name { font-size: 13px; font-weight: 500; color: var(--black); min-width: 100px; }
+  .score-bar-wrap { flex: 1; height: 5px; background: var(--light-gray); border-radius: 3px; overflow: hidden; }
+  .score-bar-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+  .score-val { font-family: var(--font-display); font-size: 18px; font-weight: 700; min-width: 30px; text-align: right; }
+  .score-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; min-width: 58px; text-align: center; }
+  .badge-strong { background: #0D0D0D; color: var(--white); }
+  .badge-moderate { background: var(--gold-pale); color: #8A6A10; border: 1px solid #C9A030; }
+  .badge-low { background: #F0F0EE; color: var(--mid-gray); }
+
+  .interpretation-box { background: var(--gold-pale); border-left: 3px solid var(--gold); padding: 18px 20px; margin: 18px 0 14px; border-radius: 0 4px 4px 0; }
+  .interp-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .interp-text { font-size: 13px; line-height: 1.7; color: var(--black); }
+  .interp-text p { margin-bottom: 9px; }
+  .interp-text p:last-child { margin-bottom: 0; }
+
+  .ai-box { background: var(--blue-pale); border-left: 3px solid var(--blue); padding: 18px 20px; margin: 0 0 20px; border-radius: 0 4px 4px 0; }
+  .ai-title { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--blue); margin-bottom: 10px; }
+  .ai-text { font-size: 13px; line-height: 1.7; color: var(--black); }
+
+  .btn-restart {
+    display: block; width: 100%; max-width: 360px; margin: 0 auto 16px;
+    padding: 14px; background: var(--black); color: var(--white);
+    font-family: var(--font-body); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; border: none; border-radius: 2px; cursor: pointer;
+  }
+  .results-footer { text-align: center; padding: 16px 24px 32px; font-size: 11px; color: var(--mid-gray); }
+
+  .fade-enter { animation: fadeIn 0.35s ease forwards; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 400px) { .likert-btn { font-size: 15px; } .score-name { min-width: 82px; font-size: 12px; } }
+  @media (min-width: 600px) { #screen-question { padding: 60px 40px 40px; } .results-body { padding: 0 32px 40px; } }
+</style>
+</head>
+<body>
+
+<div id="lang-bar">
+  <button class="lang-btn active" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" onclick="setLang('fr')">FR</button>
+</div>
+<div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+
+<!-- WELCOME -->
+<div id="screen-welcome" class="screen active">
+  <div class="welcome-inner fade-enter">
+    <div class="welcome-eyebrow" data-i18n="eyebrow"></div>
+    <h1 class="welcome-title" data-i18n-html="title"></h1>
+    <div class="gold-divider"></div>
+    <div class="welcome-meta" data-i18n="meta"></div>
+    <p class="welcome-sub" data-i18n="subtitle"></p>
+    <div class="disclaimer-box"><p data-i18n="disclaimer"></p></div>
+    <div class="optional-fields">
+      <div class="optional-label" data-i18n="optional"></div>
+      <input class="opt-input" id="field-name" type="text" data-i18n-placeholder="name_ph">
+    </div>
+    <button class="btn-primary" onclick="startDiagnostic()" data-i18n="start"></button>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div id="screen-question" class="screen">
+  <div class="q-header">
+    <div class="q-counter" id="q-counter"></div>
+    <div class="q-domain" id="q-domain"></div>
+    <div class="q-text" id="q-text"></div>
+  </div>
+  <div class="q-body">
+    <div class="likert-wrap">
+      <div class="likert-labels">
+        <span class="likert-label-text" id="scale-label-left"></span>
+        <span class="likert-label-text" id="scale-label-right"></span>
+      </div>
+      <div class="likert-buttons" id="likert-buttons"></div>
+    </div>
+  </div>
+  <div class="q-footer">
+    <button class="btn-back" id="btn-back" onclick="goBack()">← <span data-i18n="back"></span></button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="screen-results" class="screen">
+  <div class="results-header">
+    <div class="results-eyebrow" data-i18n="results_eyebrow"></div>
+    <div id="results-name" class="results-name"></div>
+    <div class="results-title" data-i18n-html="results_title"></div>
+  </div>
+  <div class="results-body">
+    <div class="score-section">
+      <div class="score-section-title" data-i18n="sec_domains"></div>
+      <div class="score-block-insight" id="insight-domains"></div>
+      <div id="domain-scores"></div>
+    </div>
+    <div class="score-section">
+      <div class="score-section-title" data-i18n="sec_impact"></div>
+      <div class="score-block-insight" id="insight-impact"></div>
+      <div id="impact-scores"></div>
+    </div>
+    <div class="score-section">
+      <div class="score-section-title" data-i18n="sec_conditions"></div>
+      <div class="score-block-insight" id="insight-conditions"></div>
+      <div id="conditions-scores"></div>
+    </div>
+    <div class="interpretation-box">
+      <div class="interp-title" data-i18n="interp_title"></div>
+      <div class="interp-text" id="interpretation-text"></div>
+    </div>
+    <div class="ai-box">
+      <div class="ai-title" data-i18n="ai_title"></div>
+      <div class="ai-text" id="ai-text"></div>
+    </div>
+    <button class="btn-restart" onclick="restartApp()" data-i18n="restart"></button>
+  </div>
+  <div class="results-footer" data-i18n="footer"></div>
+</div>
+
+<script>
+const T = {
+  en: {
+    eyebrow:"PMI Symposium 2026 · EMBA Executive Seminar",
+    title:"Decision<br>Impact<br>Diagnostic",
+    meta:"12 questions · ~5 minutes",
+    subtitle:"A litmus test to see how your personal decision intelligence strategy plays out — ensuring decision velocity, quality, and optimal outcomes.",
+    disclaimer:"This is not a personality test, an official diagnostic, or a maturity scorecard. It's a mirror of how decisions actually move from idea to action in complex environments. Strong Decision Intelligence shows up as judgment, not consistency — so a balanced profile is a sign of strength, not weakness.",
+    optional:"Optional — Your name",
+    name_ph:"Your name",
+    start:"Begin Diagnostic",
+    back:"Back",
+    results_eyebrow:"Your Decision Impact Profile",
+    results_title:"Decision<br>Impact<br>Profile",
+    sec_domains:"Domain Strength",
+    sec_impact:"Decision Impact",
+    sec_conditions:"Conditions",
+    interp_title:"Your DI Strategy Insight",
+    ai_title:"AI Collaboration Readiness",
+    restart:"Retake Diagnostic",
+    footer:"Beta version — For reflection and workshop use only.",
+    q_of:"Question {n} of 12",
+    scale_left:"Strongly Disagree",
+    scale_right:"Strongly Agree",
+    scale_labels:["Strongly Disagree","Disagree","Neutral","Agree","Strongly Agree"],
+    domains:["Decision Governance","Enterprise Architecture","Information Discipline","Adaptive Judgment"],
+    domain_short:["Governance","Enterprise","Information","Judgment"],
+    impact_labels:["Velocity","Quality","Performance"],
+    condition_labels:["Convergence","Capability","Environment"],
+    badge_strong:"Strong", badge_moderate:"Moderate", badge_low:"Low",
+    insight_domains:"Your domain scores reflect the four levers you use to control, influence, or navigate decisions. Strong scores indicate practiced behaviors; lower scores reveal where friction tends to enter.",
+    insight_impact:"These scores show how your decision behaviors translate into outcomes. Velocity reflects how fast decisions move, Quality how sound they are, and Performance how well they hold up across the broader system.",
+    insight_conditions:"Conditions are the environment in which your decisions play out. Convergence is about alignment, Capability about your reasoning discipline, and Environment about your ability to navigate structural complexity.",
+    impact_lines:["You enable movement. Ensure alignment keeps pace with speed.","You enable rigor. Guard against analysis slowing commitment.","You think systemically. Maintain governance clarity to sustain results."],
+    condition_lines:["Alignment gaps may be limiting decision consistency.","Stronger reasoning discipline will elevate your decision impact.","Greater system awareness will strengthen execution outcomes."],
+    cta:["build explicit alignment checkpoints into your decision process — speed without shared understanding creates rework.","set a commitment threshold. Define in advance how much analysis is enough before a decision must be made.","map the downstream impacts of your top three recurring decisions — systemic thinking compounds over time."],
+    ai_high_velocity:"Your profile shows strong velocity — AI collaboration may amplify speed while masking judgment gaps. This makes quality discipline your most important safeguard.",
+    ai_high_quality:"Your rigorous approach to quality is a strong foundation for AI collaboration — but watch for over-reliance on AI-generated analysis without maintaining critical oversight.",
+    ai_balanced:"Your balanced DI profile is a solid foundation for AI collaboration. The key risk to monitor is whether AI tools reinforce existing blind spots rather than expanding your judgment.",
+    ai_prefix:"AI readiness requires specific competencies that were not assessed (such as critical thinking, ethical oversight, and digital literacy). ",
+    ai_suffix:" Consider this your signal to explore AI readiness as the next layer of your decision intelligence strategy.",
+  },
+  fr: {
+    eyebrow:"PMI Symposium 2026 · Séminaire EMBA",
+    title:"Diagnostic<br>d'Impact<br>Décisionnel",
+    meta:"12 questions · ~5 minutes",
+    subtitle:"Un test décisif pour évaluer comment votre stratégie personnelle d'intelligence décisionnelle se manifeste — assurant vélocité, qualité et résultats optimaux.",
+    disclaimer:"Ce diagnostic n'est pas un test de personnalité, un outil officiel d'évaluation, ni un référentiel de maturité. C'est un miroir de la façon dont les décisions passent réellement de l'idée à l'action dans des environnements complexes. Une forte intelligence décisionnelle se manifeste par le jugement, non par la cohérence — un profil équilibré est donc un signe de force, non de faiblesse.",
+    optional:"Optionnel — Votre nom",
+    name_ph:"Votre nom",
+    start:"Commencer le diagnostic",
+    back:"Retour",
+    results_eyebrow:"Votre Profil Décisionnel",
+    results_title:"Profil<br>d'Impact<br>Décisionnel",
+    sec_domains:"Force des Domaines",
+    sec_impact:"Impact Décisionnel",
+    sec_conditions:"Conditions",
+    interp_title:"Aperçu de votre stratégie DI",
+    ai_title:"Préparation à la Collaboration IA",
+    restart:"Recommencer le diagnostic",
+    footer:"Version bêta — À des fins de réflexion et d'atelier uniquement.",
+    q_of:"Question {n} sur 12",
+    scale_left:"Pas du tout d'accord",
+    scale_right:"Tout à fait d'accord",
+    scale_labels:["Pas du tout d'accord","Pas d'accord","Neutre","D'accord","Tout à fait d'accord"],
+    domains:["Gouvernance Décisionnelle","Architecture d'Entreprise","Discipline de l'Information","Jugement Adaptatif"],
+    domain_short:["Gouvernance","Entreprise","Information","Jugement"],
+    impact_labels:["Vélocité","Qualité","Performance"],
+    condition_labels:["Convergence","Capacité","Environnement"],
+    badge_strong:"Fort", badge_moderate:"Modéré", badge_low:"Faible",
+    insight_domains:"Vos scores de domaine reflètent les quatre leviers que vous utilisez pour contrôler, influencer ou naviguer les décisions. Des scores élevés indiquent des comportements ancrés ; des scores plus faibles révèlent où la friction tend à s'introduire.",
+    insight_impact:"Ces scores montrent comment vos comportements décisionnels se traduisent en résultats. La vélocité reflète la rapidité, la qualité la solidité, et la performance la tenue dans le système global.",
+    insight_conditions:"Les conditions représentent l'environnement dans lequel vos décisions se déroulent. La convergence porte sur l'alignement, la capacité sur la discipline de raisonnement, et l'environnement sur votre aptitude à naviguer la complexité structurelle.",
+    impact_lines:["Vous générez du mouvement. Assurez que l'alignement suive la vitesse.","Vous cultivez la rigueur. Veillez à ce que l'analyse ne freine pas l'engagement.","Vous pensez de façon systémique. Maintenez la clarté de gouvernance pour des résultats durables."],
+    condition_lines:["Des lacunes d'alignement limitent peut-être la cohérence décisionnelle.","Une discipline de raisonnement plus forte élèvera votre impact décisionnel.","Une meilleure conscience du système renforcera vos résultats d'exécution."],
+    cta:["intégrez des points de contrôle d'alignement explicites dans votre processus décisionnel — la vitesse sans compréhension partagée génère des reprises.","définissez un seuil d'engagement. Établissez à l'avance combien d'analyse suffit avant qu'une décision doive être prise.","cartographiez les impacts en aval de vos trois décisions récurrentes principales — la pensée systémique se capitalise avec le temps."],
+    ai_high_velocity:"Votre profil montre une forte vélocité — la collaboration IA peut amplifier la vitesse tout en masquant des lacunes de jugement. La discipline qualité devient votre garde-fou le plus important.",
+    ai_high_quality:"Votre rigueur qualitative est une base solide pour la collaboration IA — mais surveillez la tendance à vous appuyer sur l'analyse IA sans maintenir une supervision critique.",
+    ai_balanced:"Votre profil DI équilibré est une base solide pour la collaboration IA. Le risque principal est que les outils IA renforcent les angles morts existants plutôt que d'élargir votre jugement.",
+    ai_prefix:"La préparation à l'IA requiert des compétences spécifiques non évaluées ici (pensée critique, supervision éthique et littératie numérique). ",
+    ai_suffix:" Considérez ceci comme le signal d'explorer la préparation à l'IA comme prochaine couche de votre stratégie d'intelligence décisionnelle.",
+  }
+};
+
+const questions = [
+  {id:1, domain:0, reverse:false, en:"I clarify who decides, who contributes, and who is accountable before execution begins.", fr:"Je clarifie qui décide, qui contribue et qui est responsable avant l'exécution."},
+  {id:2, domain:0, reverse:false, en:"I document key decisions and the reasoning behind them so they can be revisited later.", fr:"Je documente les décisions clés et leur raisonnement pour pouvoir les revisiter."},
+  {id:3, domain:0, reverse:true,  en:"When ownership is unclear, I move forward anyway to maintain momentum.", fr:"Lorsque la responsabilité est floue, j'avance quand même pour garder le rythme."},
+  {id:4, domain:1, reverse:false, en:"Before committing to a decision, I assess cross-team and cross-system impacts.", fr:"Avant de prendre une décision, j'évalue les impacts interéquipes et intersystèmes."},
+  {id:5, domain:1, reverse:false, en:"When I identify structural bottlenecks, I address or escalate them instead of working around them.", fr:"Lorsque j'identifie un goulot d'étranglement structurel, je l'aborde ou l'escalade au lieu de le contourner."},
+  {id:6, domain:1, reverse:true,  en:"I prioritize my team's success, even if the broader system absorbs the cost.", fr:"Je priorise le succès de mon équipe, même si le système global en absorbe le coût."},
+  {id:7, domain:2, reverse:false, en:"I confirm shared definitions and assumptions before interpreting data.", fr:"Je confirme les définitions et hypothèses partagées avant d'interpréter les données."},
+  {id:8, domain:2, reverse:false, en:"I use only the information needed to decide and clearly state what is missing.", fr:"J'utilise uniquement l'information nécessaire pour décider et j'indique clairement ce qui manque."},
+  {id:9, domain:2, reverse:true,  en:"I trust dashboards and metrics even when data quality or lineage is unclear.", fr:"Je fais confiance aux tableaux de bord même si la qualité ou la traçabilité des données est incertaine."},
+  {id:10,domain:3, reverse:false, en:"Under uncertainty, I state assumptions, trade-offs, and defend my reasoning.", fr:"En situation d'incertitude, j'expose mes hypothèses, compromis et raisonnement."},
+  {id:11,domain:3, reverse:false, en:"I regularly review decision outcomes to improve future decisions.", fr:"Je revois régulièrement les résultats des décisions pour améliorer les suivantes."},
+  {id:12,domain:3, reverse:true,  en:"I delay decisions until uncertainty is significantly reduced.", fr:"Je retarde les décisions jusqu'à ce que l'incertitude soit fortement réduite."},
+];
+
+let lang='en', order=[], idx=0, answers={};
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().toLowerCase()===l));
+  applyI18n();
+  if(document.getElementById('screen-question').classList.contains('active')) renderQ();
+}
+
+function applyI18n(){
+  const t=T[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(t[k]!==undefined)el.textContent=t[k];});
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{const k=el.getAttribute('data-i18n-html');if(t[k]!==undefined)el.innerHTML=t[k];});
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.getAttribute('data-i18n-placeholder');if(t[k]!==undefined)el.placeholder=t[k];});
+}
+
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+
+function startDiagnostic(){
+  order=shuffle(questions.map((_,i)=>i));
+  idx=0; answers={};
+  show('screen-question'); renderQ();
+}
+
+function sc(id){const q=questions.find(q=>q.id===id);const r=answers[id]||3;return q.reverse?6-r:r;}
+function avg(ids){return ids.reduce((s,id)=>s+sc(id),0)/ids.length;}
+
+function renderQ(){
+  if(idx>=12){showResults();return;}
+  const q=questions[order[idx]];
+  const t=T[lang];
+  document.getElementById('q-counter').textContent=t.q_of.replace('{n}',idx+1);
+  document.getElementById('q-domain').textContent=t.domains[q.domain];
+  document.getElementById('q-text').textContent=q[lang];
+  document.getElementById('scale-label-left').textContent=t.scale_left;
+  document.getElementById('scale-label-right').textContent=t.scale_right;
+  const wrap=document.getElementById('likert-buttons');
+  wrap.innerHTML='';
+  for(let v=1;v<=5;v++){
+    const b=document.createElement('button');
+    b.className='likert-btn'+(answers[q.id]===v?' selected':'');
+    b.textContent=v;
+    b.setAttribute('aria-label',T[lang].scale_labels[v-1]);
+    b.onclick=()=>pick(q.id,v);
+    wrap.appendChild(b);
+  }
+  document.getElementById('btn-back').style.visibility=idx===0?'hidden':'visible';
+  document.getElementById('progress-bar').style.width=((idx/12)*100)+'%';
+}
+
+function pick(qid,val){
+  answers[qid]=val;
+  document.querySelectorAll('.likert-btn').forEach((b,i)=>b.classList.toggle('selected',i+1===val));
+  setTimeout(()=>{idx++;renderQ();},280);
+}
+
+function goBack(){if(idx>0){idx--;renderQ();}else{show('screen-welcome');}}
+
+function badgeHTML(val,t){
+  if(val>=3.8)return`<span class="score-badge badge-strong">${t.badge_strong}</span>`;
+  if(val>=2.5)return`<span class="score-badge badge-moderate">${t.badge_moderate}</span>`;
+  return`<span class="score-badge badge-low">${t.badge_low}</span>`;
+}
+
+function addRow(name,val,t,container){
+  const pct=((val-1)/4)*100;
+  const d=document.createElement('div');
+  d.className='score-row';
+  d.innerHTML=`<span class="score-name">${name}</span><div class="score-bar-wrap"><div class="score-bar-fill" style="width:0%"></div></div><span class="score-val">${val.toFixed(1)}</span>${badgeHTML(val,t)}`;
+  container.appendChild(d);
+  setTimeout(()=>{d.querySelector('.score-bar-fill').style.width=pct+'%';},120);
+}
+
+function showResults(){
+  document.getElementById('progress-bar').style.width='100%';
+  const t=T[lang];
+  const name=document.getElementById('field-name').value.trim();
+  document.getElementById('results-name').textContent=name||'';
+
+  const ds=[avg([1,2,3]),avg([4,5,6]),avg([7,8,9]),avg([10,11,12])];
+  const vel=avg([1,5,8,10,3,12]);
+  const qua=avg([2,4,7,10,11,9]);
+  const per=avg([4,5,7,11,6]);
+  const con=avg([1,4,7,10,3]);
+  const cap=avg([2,8,10,11,12]);
+  const env=avg([4,5,8,6,9]);
+
+  document.getElementById('insight-domains').textContent=t.insight_domains;
+  document.getElementById('insight-impact').textContent=t.insight_impact;
+  document.getElementById('insight-conditions').textContent=t.insight_conditions;
+
+  const de=document.getElementById('domain-scores');de.innerHTML='';
+  ds.forEach((v,i)=>addRow(t.domain_short[i],v,t,de));
+
+  const ie=document.getElementById('impact-scores');ie.innerHTML='';
+  [vel,qua,per].forEach((v,i)=>addRow(t.impact_labels[i],v,t,ie));
+
+  const ce=document.getElementById('conditions-scores');ce.innerHTML='';
+  [con,cap,env].forEach((v,i)=>addRow(t.condition_labels[i],v,t,ce));
+
+  const impIdx=[vel,qua,per].indexOf(Math.max(vel,qua,per));
+  const conIdx=[con,cap,env].indexOf(Math.min(con,cap,env));
+  const nextMove=lang==='fr'?`<strong>Votre prochain pas :</strong> ${t.cta[impIdx]}`:`<strong>Your next move:</strong> ${t.cta[impIdx]}`;
+  document.getElementById('interpretation-text').innerHTML=`<p>${t.impact_lines[impIdx]}</p><p>${t.condition_lines[conIdx]}</p><p>${nextMove}</p>`;
+
+  let aiMid=t.ai_balanced;
+  if(vel>qua+0.5)aiMid=t.ai_high_velocity;
+  else if(qua>vel+0.5)aiMid=t.ai_high_quality;
+  document.getElementById('ai-text').textContent=t.ai_prefix+aiMid+t.ai_suffix;
+
+  show('screen-results');
+}
+
+function restartApp(){show('screen-welcome');document.getElementById('progress-bar').style.width='0%';}
+
+applyI18n();
+</script>
+</body>
+</html>
