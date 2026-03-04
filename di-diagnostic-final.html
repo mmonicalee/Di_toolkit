@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+<title>Decision Intelligence Diagnostic</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --gold: #C9992A;
+    --neutral: #6B7280;
+    --bg: #FFFFFF;
+    --red: #C0392B;
+    --light-bg: #F8F9FB;
+    --border: #E5E7EB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  /* ── LANG TOGGLE ── */
+  .lang-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--navy);
+    padding: 10px 32px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+  }
+  .lang-btn {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.65);
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 5px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .lang-btn.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #fff;
+  }
+  .lang-btn:hover:not(.active) {
+    border-color: rgba(255,255,255,0.7);
+    color: #fff;
+  }
+
+  /* ── LAYOUT ── */
+  .page {
+    display: none;
+    min-height: 100vh;
+    padding-top: 56px;
+  }
+  .page.active { display: block; }
+
+  .container {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+
+  /* ── INTRO PAGE ── */
+  .intro-header {
+    text-align: center;
+    padding: 56px 0 40px;
+  }
+  .intro-header .eyebrow {
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .intro-header h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+  .intro-header h1 span { color: var(--gold); }
+
+  .intro-card {
+    background: var(--light-bg);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 12px 12px 0;
+    padding: 28px 32px;
+    margin: 32px 0;
+    font-size: 16px;
+    color: #374151;
+    line-height: 1.75;
+  }
+  .intro-card p + p { margin-top: 12px; }
+
+  .intro-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 28px 0 36px;
+  }
+  .meta-pill {
+    background: var(--light-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 15px;
+    color: var(--navy);
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+  }
+  .meta-pill strong {
+    display: block;
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 16px 40px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    text-align: center;
+  }
+  .btn-primary:hover { background: #243761; transform: translateY(-1px); }
+
+  /* ── QUESTIONNAIRE ── */
+  .q-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .q-header h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .progress-bar {
+    background: var(--border);
+    border-radius: 4px;
+    height: 6px;
+    margin: 20px 0;
+  }
+  .progress-fill {
+    background: var(--gold);
+    height: 6px;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-size: 14px;
+    color: var(--neutral);
+    text-align: right;
+    margin-bottom: 32px;
+  }
+
+  .axis-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .question-card {
+    background: var(--light-bg);
+    border-radius: 12px;
+    padding: 28px 28px 24px;
+    margin-bottom: 24px;
+  }
+  .question-text {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--navy);
+    margin-bottom: 22px;
+    line-height: 1.6;
+  }
+  .q-num {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: var(--gold);
+    margin-right: 6px;
+  }
+
+  .options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  @media (min-width: 500px) {
+    .options { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .option-btn {
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 8px;
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    color: var(--navy);
+    transition: all 0.18s;
+    text-align: center;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  .option-btn .score-badge {
+    display: block;
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--neutral);
+    margin-bottom: 4px;
+  }
+  .option-btn:hover {
+    border-color: var(--gold);
+    background: #FDF8EE;
+  }
+  .option-btn.selected {
+    border-color: var(--navy);
+    background: var(--navy);
+    color: #fff;
+  }
+  .option-btn.selected .score-badge { color: var(--gold); }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+    gap: 16px;
+  }
+  .btn-secondary {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--navy);
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 13px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-secondary:hover { border-color: var(--navy); }
+
+  .answered-indicator {
+    font-size: 14px;
+    color: var(--neutral);
+    text-align: center;
+    margin-top: 10px;
+  }
+  .answered-indicator.warn { color: var(--red); }
+
+  /* ── RESULTS ── */
+  .results-header {
+    text-align: center;
+    padding: 40px 0 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .results-header h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--navy);
+  }
+  .profile-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 8px 0 4px;
+  }
+  .profile-zone-tag {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+
+  /* Scores row */
+  .scores-grid {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr 1px 1fr;
+    gap: 0;
+    margin-bottom: 36px;
+    background: var(--light-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .score-card {
+    background: transparent;
+    padding: 24px 16px;
+    text-align: center;
+    border-top: none;
+  }
+  .score-card.highlight { border-top: 3px solid var(--gold); }
+  .score-card.warn { border-top: 3px solid var(--red); }
+  .score-card--divider {
+    display: flex;
+    align-items: stretch;
+    padding: 16px 0;
+  }
+  .s-divider-line {
+    width: 1px;
+    background: var(--border);
+    flex: 1;
+  }
+  .score-card .s-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--neutral);
+    margin-bottom: 6px;
+  }
+  .score-card .s-value {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .score-card.warn .s-value { color: var(--red); }
+  .score-card .s-sub {
+    font-size: 13px;
+    color: var(--neutral);
+    margin-top: 4px;
+  }
+
+  /* Quadrant chart */
+  .chart-section {
+    margin-bottom: 36px;
+  }
+  .chart-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .chart-wrap {
+    position: relative;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  canvas#quadrantChart {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 10px;
+  }
+
+  /* Profile card */
+  .profile-card {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .profile-card .p-eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .profile-card h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .profile-card p {
+    font-size: 16px;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.88);
+  }
+
+  .impact-card {
+    background: var(--light-bg);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+  .impact-card .i-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .impact-card p {
+    font-size: 16px;
+    line-height: 1.75;
+    color: #374151;
+  }
+
+  .workshop-card {
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 28px;
+    margin-bottom: 36px;
+  }
+  .workshop-card .w-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--neutral);
+    margin-bottom: 6px;
+  }
+  .workshop-card p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--navy);
+  }
+
+  .retake-row {
+    text-align: center;
+    padding-bottom: 48px;
+  }
+  .btn-retake {
+    background: transparent;
+    border: 2px solid var(--navy);
+    color: var(--navy);
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 13px 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-retake:hover { background: var(--navy); color: #fff; }
+
+  /* Diagonal badge */
+  .diagonal-banner {
+    background: linear-gradient(135deg, var(--gold) 0%, #e6b84a 100%);
+    color: var(--navy);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  /* ── ALL PROFILES SECTION ── */
+  .all-profiles-section {
+    margin-bottom: 36px;
+  }
+  .all-profiles-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--neutral);
+    margin-bottom: 16px;
+    margin-top: 36px;
+  }
+  .all-profiles-section .profile-card {
+    margin-bottom: 16px;
+    opacity: 0.82;
+  }
+
+  @media print {
+    .lang-bar { display: none; }
+    .retake-row { display: none; }
+    .btn-primary, .btn-secondary { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Language toggle -->
+<div class="lang-bar">
+  <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+</div>
+
+<!-- INTRO PAGE -->
+<div class="page active" id="page-intro">
+  <div class="container">
+    <div class="intro-header">
+      <div class="eyebrow" id="t-eyebrow">Decision Intelligence</div>
+      <h1 id="t-title">How do you <span>make decisions?</span></h1>
+    </div>
+
+    <div class="intro-card" id="t-intro-card">
+      <p>This tool is grounded in research on how individuals and organizations make decisions — drawing from fields including cognitive science, organizational behaviour, and leadership development.</p>
+      <p>It is designed as a <strong>reflection instrument</strong>, not a clinical assessment. The results are intended to help you think more clearly about your decision-making patterns — where your strengths lie and where there may be room to grow.</p>
+      <p>The research behind Decision Intelligence is ongoing, and this diagnostic will continue to evolve. Use it as a starting point for honest conversation, not as a definitive verdict.</p>
+    </div>
+
+    <div class="intro-meta">
+      <div class="meta-pill"><strong id="t-meta-q">11</strong><span id="t-meta-qlabel">Questions</span></div>
+      <div class="meta-pill"><strong id="t-meta-t">~5</strong><span id="t-meta-tlabel">Minutes</span></div>
+      <div class="meta-pill"><strong id="t-meta-p">0</strong><span id="t-meta-plabel">Data Collected</span></div>
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn-primary" id="t-start-btn" onclick="startQuiz()">Begin the Diagnostic →</button>
+    </div>
+
+    <div id="t-privacy-note" style="margin-top:28px;padding:16px 20px;background:#F8F9FB;border:1px solid #E5E7EB;border-radius:8px;font-size:14px;color:#6B7280;line-height:1.65;text-align:center;"></div>
+  </div>
+</div>
+
+<!-- QUESTIONNAIRE PAGE -->
+<div class="page" id="page-quiz">
+  <div class="container">
+    <div class="q-header">
+      <h2 id="t-q-title">Answer honestly — there are no right or wrong answers.</h2>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-label"><span id="progress-text">0 / 11</span></div>
+    </div>
+    <div id="questions-container"></div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="btn-prev" onclick="prevQ()" style="display:none">← Back</button>
+      <button class="btn-primary" id="btn-next" onclick="nextQ()">Next →</button>
+    </div>
+    <div class="answered-indicator" id="answer-indicator"></div>
+  </div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div class="page" id="page-results">
+  <div class="container" id="results-container"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// ✏️  EDITOR GUIDE — SAFE TO EDIT ZONES
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// This file has two language blocks: T.en (English) and T.fr (French).
+// Both are structured identically. Edit text inside the quote marks only.
+//
+// SAFE TO EDIT — just change the text between the quotes:
+//   • eyebrow          — small label above the main title
+//   • title            — main heading (the <span>...</span> part turns gold)
+//   • introCard        — the intro disclaimer paragraphs (<p> tags are fine)
+//   • metaQlabel       — label under "12" pill  (e.g. "Questions")
+//   • metaTlabel       — label under "~5" pill  (e.g. "Minutes")
+//   • metaPlabel       — label under "0" pill   (e.g. "Data Collected")
+//   • startBtn         — text on the start button
+//   • qTitle           — instruction line above the questions
+//   • prev / next / submit — navigation button labels
+//   • unanswered       — warning shown when user clicks Next without answering
+//   • options          — the 4 answer labels: [Never, Sometimes, Often, Always]
+//   • questions        — the 12 questions (see detailed guide below)
+//   • results section  — all profile names, definitions, impacts, workshop text
+//
+// ⚠️  DO NOT EDIT — these control the logic, not the text:
+//   • Everything after the closing }; of the T object
+//   • The axis names inside questions must stay consistent (see note below)
+//   • The keys Q1, Q2, Q3, Q4, DI — these are score codes, not question numbers
+//
+// ── HOW TO EDIT A QUESTION ───────────────────────────────────────────────────
+// Each question looks like this:
+//   { axis: "Self-Awareness", text: "Your question text here." },
+//
+//   • "axis"  — the category label shown above the question card.
+//               EN values must be one of: "Self-Awareness", "System Design", "Integrative Judgment"
+//               FR values must be one of: "Conscience de soi", "Conception systémique", "Jugement intégratif"
+//               ⚠️ Do not change the axis value — only change the text value.
+//
+//   • "text"  — the question itself. Edit freely.
+//               The question order (Q1–Q12) must stay the same — do not add,
+//               remove, or reorder questions without sending to Claude first.
+//
+// ── HOW TO EDIT PROFILE TEXT ─────────────────────────────────────────────────
+// In the results section, each profile has three text fields:
+//   • profileDefs     — the definition paragraph (dark navy card)
+//   • profileImpacts  — the "In Practice" paragraph (gold-bordered card)
+//   • profileWorkshop — the development focus line (outlined card)
+//
+// Keys: Q1, Q2, Q3, Q4, DI — each maps to one profile.
+//   Q1 = "Decide First, Explain Later"
+//   Q2 = "The Reflective Individual"
+//   Q3 = "The Process Driver"
+//   Q4 = "The Intentional Leader"
+//   DI = "The DI Practitioner" (diagonal zone)
+//
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── TRANSLATIONS ──────────────────────────────────────────────────────────────
+const T = {
+  en: {
+    eyebrow: "Decision Intelligence",
+    title: "How do you <span>make decisions?</span>",
+    introCard: `<p>This tool is grounded in research on how individuals and organizations make decisions — drawing from fields including cognitive science, organizational behaviour, and leadership development.</p>
+      <p>It is designed as a <strong>reflection instrument</strong>, not a clinical assessment. The results are intended to help you think more clearly about your decision-making patterns — where your strengths lie and where there may be room to grow.</p>
+      <p>The research behind Decision Intelligence is ongoing, and this diagnostic will continue to evolve. Use it as a starting point for honest conversation, not as a definitive verdict.</p>`,
+    metaQ: "11", metaQlabel: "Questions",
+    metaT: "~5", metaTlabel: "Minutes",
+    metaP: "0", metaPlabel: "Data Collected",
+    startBtn: "Begin the Diagnostic →",
+    privacyNote: "This diagnostic does not collect, store, or transmit any personal information. All answers remain in your browser's memory only for the duration of your session and are cleared as soon as you close the page.",
+    qTitle: "Answer honestly — there are no right or wrong answers.",
+    prev: "← Back",
+    next: "Next →",
+    submit: "See My Results →",
+    unanswered: "Please select an answer to continue.",
+    options: ["Never", "Sometimes", "Often", "Always"],
+    axes: {
+      SA: "Self-Awareness",
+      SD: "System Design",
+      BAL: "Integrative Judgment"
+    },
+    // ✏️ QUESTIONS — Edit the "text" value freely. Do NOT change "axis" values.
+    // ⚠️ Keep all 12 questions in this exact order. Do not add or remove any.
+    questions: [
+      /* Q1  */ { axis: "System Design",    text: "When a decision needs to be made, I push to define who owns it before the conversation goes further." },
+      /* Q2  */ { axis: "System Design",    text: "When a group is circling without making progress, I propose a path forward to move the conversation in a better direction." },
+      /* Q3  */ { axis: "Integrative Judgment", text: "Before deciding, I try to understand the why behind perspectives different from my own." },
+      /* Q4  */ { axis: "Self-Awareness",   text: "When I'm stressed or frustrated, I pause to check whether my emotions are influencing the decision I'm about to make." },
+      /* Q5  */ { axis: "Integrative Judgment", text: "I can articulate the tradeoffs involved in a decision." },
+      /* Q6  */ { axis: "Self-Awareness",   text: "When outcomes don't meet expectations or create issues, I look for causes — not culprits." },
+      /* Q7  */ { axis: "Integrative Judgment", text: "When information evolves, I adjust the decision and openly explain what is driving the change." },
+      /* Q8  */ { axis: "System Design",    text: "After each strategic decision, I formally assess the gap between the original intent and the results." },
+      /* Q9  */ { axis: "Self-Awareness",   text: "I can articulate why a past decision went wrong — not just that it went wrong." },
+      /* Q10 */ { axis: "Self-Awareness",   text: "When people disagree, I help the room find the real point of disagreement — not just argue positions." },
+      /* Q11 */ { axis: "System Design",    text: "I can trace a business problem back to a specific decision — whether it was made or missed." }
+    ],
+    results: {
+      // ✏️ UI LABELS — safe to edit
+      yourProfile: "Your Profile",
+      resultsTitle: "Your Results",
+      allProfiles: "The Four Profiles",
+      saScore: "Self-Awareness",
+      sdScore: "System Design",
+      balScore: "Integrative Judgment",
+      gapLabel: "SA / SD Gap",
+      definition: "What this means",
+      impact: "In Practice",
+      workshop: "Development Focus",
+      diagonal: "🎯 You are operating in the DI Practitioner Zone",
+      retake: "Retake the Diagnostic",
+      chartTitle: "Your Position on the DI Map",
+
+      // ✏️ PROFILE NAMES — the title shown in each result card
+      // Keys Q1–Q4 and DI must stay exactly as written — only change the text values
+      profileNames: {
+        Q1: "Decide First, Explain Later",
+        Q2: "The Reflective Individual",
+        Q3: "The Process Driver",
+        Q4: "The Intentional Leader",
+        DI: "The DI Practitioner"
+      },
+
+      // ✏️ PROFILE DEFINITIONS — shown in the dark navy card
+      profileDefs: {
+        Q1: "Decisions are made primarily on instinct, urgency, or habit, and can sometimes lack structured reflection or intentional process. Decision-making is inconsistent and hard to learn from, since neither the why nor the how of decisions is visible. This lack of transparency makes course correction difficult and could contribute to unpredictable or misaligned outcomes.",
+        Q2: "This person understands themselves well. They are able to read the room, recognize their own emotional state, and can trace cause and effect. Their insight rarely translates into repeatable process or collective alignment, which is the organizational downside. Decisions may be personally sound but since they remain an individual capability, it is hard to scale, share, or defend in a group. Their awareness becomes a private advantage rather than an organizational asset.",
+        Q3: "Strong on frameworks, decision rights, convergence mechanisms and feedback loops. The blind spots are around emotional regulation and cause-effect reasoning which undermines even well-designed processes. This person may push for decisions efficiently but miss the human signals that indicate something is wrong. Systems without self-awareness will produce confidently low-outcome performing decisions at speed.",
+        Q4: "This person combines personal insight with structural discipline. They understand why decisions go wrong, design mechanisms to prevent recurrence, align groups effectively, and learn from outcomes. Decision velocity is high because trust is high. Decision quality is high because both the human and systemic conditions are in place. This is the profile most associated with consistently better-than-expected outcomes.",
+        DI: "Sitting on or near the diagonal means Self-Awareness and System Design are roughly in equilibrium. When the Integrative Judgment score is also high, this person operates closest to optimal decision conditions — where speed, quality, and outcomes align. This zone is not a quadrant — it's a trajectory. You can enter it from any quadrant by developing integrative judgment."
+      },
+
+      // ✏️ IN PRACTICE — shown in the gold-bordered card
+      profileImpacts: {
+        Q1: "When things move fast, we want to encourage quick decisions, and intuition based on solid experience is helpful. However, you have to be able to justify your decisions. Defending based on gut feeling or assuming people will always trust your judgement and experience over traceability discipline won't hold up at the board level or C-suite level.",
+        Q2: "You can see people are spinning in circles around a decision — will you be the one to step up and create a solution that will be integrated into the system (decision register, stronger governance mechanisms, reduced load)?",
+        Q3: "Working in silos because you think it will be faster to do, decide and execute within your unit. You're the expert. You've been given the mandate. But misinterpreting your role as a leader to create convergence impacts decision velocity exponentially — with every misstep creating larger gaps and later rework to realign and fix, and increased disengagement.",
+        Q4: "No one is perfect, but the goal is to work on achieving convergence, understanding others to ensure balance of opinions and ideas, and continuously driving common ground. This is also the person who makes sure we remember to document and revisit where we went wrong, why, and how we can do better. They do not overburden — they know how to simplify without compromising on rigour and discipline, to create real agility in order to enable decision velocity, quality, and ultimately drive the best decision outcomes.",
+        DI: "This is the person others want in the room when the stakes are high and the path is unclear. They don't slow things down — they remove the friction that was already slowing things down invisibly. They ask the question that reframes the problem. They notice when the group has reached a decision but hasn't said it yet — and they name it. They build structures that outlast them. The goal isn't perfection — it's a consistent, practiced orientation toward better."
+      },
+
+      // ✏️ DEVELOPMENT FOCUS — shown in the outlined card at the bottom
+      profileWorkshop: {
+        Q1: "High potential for growth across all DI dimensions.",
+        Q2: "The bridge to build is from insight to structure. Elevate the organization by increasing potential for collective EQ, while building it into systems and structures.",
+        Q3: "The bridge to build is from structure to insight. Discipline is an empty prize if it cultivates divergence rather than convergence.",
+        Q4: "Focus on sustainability and teaching others.",
+        DI: "This is the probabilistic sweet spot the diagnostic is designed to identify and develop toward."
+      },
+
+      // ✏️ CHART LABELS — short labels shown inside the quadrant map
+      // Order: [bottom-left, bottom-right, top-left, top-right]
+      // Use \n to force a line break within a label
+      quadrantLabels: ["Decide First,\nExplain Later", "The Reflective\nIndividual", "The Process\nDriver", "The Intentional\nLeader"],
+    }
+  }, // ← end of EN block
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 🇫🇷 FRENCH (CANADIAN) — Edit all text values below
+  // Structure is identical to EN above — same fields, same rules apply
+  // ═══════════════════════════════════════════════════════════════════════════
+  fr: {
+    eyebrow: "Intelligence Décisionnelle",
+    title: "Comment prenez-vous <span>vos décisions?</span>",
+    introCard: `<p>Cet outil s'appuie sur des recherches portant sur la façon dont les individus et les organisations prennent des décisions — en s'inspirant notamment des sciences cognitives, du comportement organisationnel et du développement du leadership.</p>
+      <p>Il est conçu comme un <strong>outil de réflexion</strong>, et non comme une évaluation clinique. Les résultats visent à vous aider à mieux comprendre vos habitudes décisionnelles — là où résident vos forces et là où il pourrait y avoir de la marge de croissance.</p>
+      <p>La recherche derrière l'Intelligence Décisionnelle est en cours, et ce diagnostic continuera d'évoluer. Utilisez-le comme point de départ pour une conversation honnête, et non comme un verdict définitif.</p>`,
+    metaQ: "11", metaQlabel: "Questions",
+    metaT: "~5", metaTlabel: "Minutes",
+    metaP: "0", metaPlabel: "Données collectées",
+    startBtn: "Commencer le diagnostic →",
+    privacyNote: "Ce diagnostic ne collecte, n'enregistre ni ne transmet aucune information personnelle. Toutes les réponses demeurent dans la mémoire de votre navigateur pour la durée de la session et sont effacées dès que vous fermez la page.",
+    qTitle: "Répondez honnêtement — il n'y a pas de bonnes ou de mauvaises réponses.",
+    prev: "← Retour",
+    next: "Suivant →",
+    submit: "Voir mes résultats →",
+    unanswered: "Veuillez sélectionner une réponse pour continuer.",
+    options: ["Jamais", "Parfois", "Souvent", "Toujours"],
+    axes: {
+      SA: "Conscience de soi",
+      SD: "Conception systémique",
+      BAL: "Jugement intégratif"
+    },
+    // ✏️ QUESTIONS FR — Edit the "text" value freely. Do NOT change "axis" values.
+    // ⚠️ Keep all 12 questions in this exact order. Do not add or remove any.
+    questions: [
+      /* Q1  */ { axis: "Conception systémique", text: "Lorsqu'une décision doit être prise, je m'assure de définir qui en est responsable avant que la conversation aille plus loin." },
+      /* Q2  */ { axis: "Conception systémique", text: "Lorsqu'un groupe tourne en rond sans progresser, je propose une voie à suivre pour faire avancer la conversation dans une meilleure direction." },
+      /* Q3  */ { axis: "Jugement intégratif",    text: "Avant de décider, j'essaie de comprendre le pourquoi derrière les perspectives différentes des miennes." },
+      /* Q4  */ { axis: "Conscience de soi",      text: "Lorsque je suis stressé·e ou frustré·e, je m'arrête pour vérifier si mes émotions influencent la décision que je suis sur le point de prendre." },
+      /* Q5  */ { axis: "Jugement intégratif",    text: "Je suis en mesure d'articuler les compromis associés à une décision." },
+      /* Q6  */ { axis: "Conscience de soi",      text: "Lorsque les résultats ne correspondent pas aux attentes ou génèrent des enjeux, je cherche les causes — pas les coupables." },
+      /* Q7  */ { axis: "Jugement intégratif",    text: "Quand l'information évolue, j'ajuste la décision et j'explique ouvertement ce qui motive ce changement." },
+      /* Q8  */ { axis: "Conception systémique", text: "Après chaque décision stratégique, j'évalue formellement l'écart entre l'intention initiale et les résultats obtenus." },
+      /* Q9  */ { axis: "Conscience de soi",      text: "Je peux expliquer pourquoi une décision passée a mal tourné — pas seulement constater qu'elle a mal tourné." },
+      /* Q10 */ { axis: "Conscience de soi",      text: "Lorsque des personnes ne sont pas d'accord, j'aide le groupe à identifier le véritable point de désaccord — plutôt que de simplement défendre des positions." },
+      /* Q11 */ { axis: "Conception systémique", text: "Je peux relier un problème d'affaires à une décision précise — qu'elle ait été prise ou omise." }
+    ],
+    results: {
+      // ✏️ UI LABELS FR — safe to edit
+      yourProfile: "Votre profil",
+      resultsTitle: "Vos résultats",
+      allProfiles: "Les quatre profils",
+      saScore: "Conscience de soi",
+      sdScore: "Conception systémique",
+      balScore: "Jugement intégratif",
+      gapLabel: "Écart CS / CD",
+      definition: "Ce que cela signifie",
+      impact: "En pratique",
+      workshop: "Orientation de développement",
+      diagonal: "🎯 Vous opérez dans la zone Praticien·ne en ID",
+      retake: "Recommencer le diagnostic",
+      chartTitle: "Votre position sur la carte ID",
+
+      // ✏️ PROFILE NAMES FR
+      profileNames: {
+        Q1: "Décider d'abord, expliquer ensuite",
+        Q2: "L'individu réflexif",
+        Q3: "Le conducteur de processus",
+        Q4: "Le leader intentionnel",
+        DI: "Le·la Praticien·ne en ID"
+      },
+
+      // ✏️ PROFILE DEFINITIONS FR — shown in the dark navy card
+      profileDefs: {
+        Q1: "Les décisions sont prises principalement par instinct, par urgence ou par habitude, et peuvent parfois manquer de réflexion structurée ou d'intentionnalité. La prise de décision est incohérente et difficile à apprendre, car ni le pourquoi ni le comment des décisions n'est visible. Ce manque de transparence complique la correction de trajectoire et peut contribuer à des résultats imprévisibles ou mal alignés.",
+        Q2: "Cette personne se connaît bien. Elle sait lire la salle, reconnaître son propre état émotionnel et établir des liens de cause à effet. Son insight se traduit rarement en processus reproductibles ou en alignement collectif, ce qui constitue le revers organisationnel. Les décisions peuvent être personnellement solides, mais comme elles demeurent une capacité individuelle, il est difficile de les mettre à l'échelle, de les partager ou de les défendre en groupe. Sa conscience devient un avantage privé plutôt qu'un actif organisationnel.",
+        Q3: "Fort·e en matière de cadres, de droits décisionnels, de mécanismes de convergence et de boucles de rétroaction. Les angles morts concernent la régulation émotionnelle et le raisonnement cause-effet, ce qui compromet même les processus bien conçus. Cette personne peut pousser à prendre des décisions efficacement, mais passer à côté des signaux humains qui indiquent qu'il y a un problème. Des systèmes sans conscience de soi produiront avec assurance des décisions aux résultats médiocres, et ce, rapidement.",
+        Q4: "Cette personne allie insight personnel et discipline structurelle. Elle comprend pourquoi les décisions dérapent, conçoit des mécanismes pour éviter les récidives, aligne efficacement les groupes et tire des leçons des résultats. La vélocité décisionnelle est élevée parce que la confiance est élevée. La qualité des décisions est élevée parce que les conditions humaines et systémiques sont en place. C'est le profil le plus associé à des résultats constamment supérieurs aux attentes.",
+        DI: "Se situer sur la diagonale ou à proximité signifie que la conscience de soi et la conception systémique sont à peu près en équilibre. Lorsque le score de jugement intégratif est également élevé, cette personne opère dans les conditions décisionnelles les plus proches de l'optimal — là où la rapidité, la qualité et les résultats s'alignent. Cette zone n'est pas un quadrant — c'est une trajectoire. On peut y accéder depuis n'importe quel quadrant en développant le jugement intégratif."
+      },
+
+      // ✏️ IN PRACTICE FR — shown in the gold-bordered card
+      profileImpacts: {
+        Q1: "Lorsque les choses vont vite, nous voulons encourager des décisions rapides, et l'intuition fondée sur une solide expérience est utile. Cependant, vous devez être en mesure de justifier vos décisions. Se défendre sur la base d'une impression ou supposer que les gens feront toujours confiance à votre jugement et à votre expérience plutôt qu'à la discipline de traçabilité ne tiendra pas au niveau du conseil d'administration ou de la haute direction.",
+        Q2: "Vous pouvez voir des personnes tourner en rond autour d'une décision — serez-vous celui ou celle qui va prendre les devants et créer une solution qui sera intégrée dans le système (registre de décisions, mécanismes de gouvernance plus solides, charge réduite)?",
+        Q3: "Travailler en silos parce que vous pensez qu'il sera plus rapide d'agir, de décider et d'exécuter au sein de votre unité. Vous êtes l'expert·e. Vous avez reçu le mandat. Mais mal interpréter votre rôle de leader pour créer de la convergence affecte exponentiellement la vélocité décisionnelle — chaque faux pas créant des écarts plus importants et un travail de réalignement et de correction ultérieur, ainsi qu'un désengagement accru.",
+        Q4: "Personne n'est parfait, mais l'objectif est de travailler à l'atteinte de la convergence, à comprendre les autres pour assurer l'équilibre des opinions et des idées, et à promouvoir continuellement un terrain commun. C'est aussi la personne qui s'assure que nous nous souvenons de documenter et de revisiter nos erreurs, leur origine et la manière dont nous pouvons faire mieux. Elle ne surcharge pas — elle sait simplifier sans compromettre la rigueur et la discipline, pour créer une véritable agilité permettant la vélocité décisionnelle, la qualité, et ultimement les meilleurs résultats décisionnels.",
+        DI: "C'est la personne que les autres veulent dans la salle lorsque les enjeux sont élevés et que la voie à suivre est incertaine. Elle ne ralentit pas les choses — elle supprime les frictions qui ralentissaient déjà invisiblement. Elle pose la question qui recadre le problème. Elle remarque quand le groupe a pris une décision mais ne l'a pas encore énoncée — et elle la nomme. Elle construit des structures qui lui survivent. L'objectif n'est pas la perfection — c'est une orientation cohérente et pratiquée vers le mieux."
+      },
+
+      // ✏️ DEVELOPMENT FOCUS FR — shown in the outlined card at the bottom
+      profileWorkshop: {
+        Q1: "Fort potentiel de croissance dans toutes les dimensions de l'ID.",
+        Q2: "Le pont à construire est de l'insight vers la structure. Élevez l'organisation en augmentant le potentiel d'intelligence émotionnelle collective, tout en l'intégrant dans les systèmes et les structures.",
+        Q3: "Le pont à construire est de la structure vers l'insight. La discipline est un prix vide si elle cultive la divergence plutôt que la convergence.",
+        Q4: "Se concentrer sur la durabilité et sur le transfert de connaissances aux autres.",
+        DI: "C'est le point d'équilibre probabiliste que le diagnostic est conçu pour identifier et vers lequel il vise à se développer."
+      },
+
+      // ✏️ CHART LABELS FR — short labels inside the quadrant map
+      // Order: [bottom-left, bottom-right, top-left, top-right]
+      quadrantLabels: ["Décider d'abord,\nExpliquer ensuite", "L'individu\nréflexif", "Le conducteur\nde processus", "Le leader\nintentionnel"],
+    }
+  }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let lang = 'en';
+let answers = new Array(11).fill(null);
+let currentQ = 0;
+
+// Q indices mapped to axes (0-based, 11 questions total):
+// SA = Q4,Q6,Q9,Q10 (idx 3,5,8,9)  — 4 questions, max 16
+// SD = Q1,Q2,Q8,Q11 (idx 0,1,7,10) — 4 questions, max 16
+// BAL = Q3,Q5,Q7    (idx 2,4,6)    — 3 questions, max 12
+const SA_IDX = [3, 5, 8, 9];
+const SD_IDX = [0, 1, 7, 10];
+const BAL_IDX = [2, 4, 6];
+
+function setLang(l) {
+  lang = l;
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.getElementById('btn-fr').classList.toggle('active', l === 'fr');
+  document.documentElement.lang = l;
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const t = T[lang];
+  const page = getCurrentPage();
+  if (page === 'intro') renderIntro();
+  else if (page === 'quiz') renderQuestion(currentQ);
+  else if (page === 'results') renderResults();
+}
+
+function getCurrentPage() {
+  if (document.getElementById('page-intro').classList.contains('active')) return 'intro';
+  if (document.getElementById('page-quiz').classList.contains('active')) return 'quiz';
+  return 'results';
+}
+
+function renderIntro() {
+  const t = T[lang];
+  document.getElementById('t-eyebrow').textContent = t.eyebrow;
+  document.getElementById('t-title').innerHTML = t.title;
+  document.getElementById('t-intro-card').innerHTML = t.introCard;
+  document.getElementById('t-meta-qlabel').textContent = t.metaQlabel;
+  document.getElementById('t-meta-tlabel').textContent = t.metaTlabel;
+  document.getElementById('t-meta-plabel').textContent = t.metaPlabel;
+  document.getElementById('t-start-btn').textContent = t.startBtn;
+  document.getElementById('t-privacy-note').textContent = t.privacyNote;
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startQuiz() {
+  answers = new Array(11).fill(null);
+  currentQ = 0;
+  showPage('page-quiz');
+  renderQuestion(0);
+}
+
+function renderQuestion(idx) {
+  const t = T[lang];
+  const q = t.questions[idx];
+  document.getElementById('t-q-title').textContent = t.qTitle;
+
+  const fill = ((idx) / 11) * 100;
+  document.getElementById('progress-fill').style.width = fill + '%';
+  document.getElementById('progress-text').textContent = `${idx} / 11`;
+
+  const container = document.getElementById('questions-container');
+  container.innerHTML = `
+    <div class="axis-label">${q.axis}</div>
+    <div class="question-card">
+      <div class="question-text"><span class="q-num">Q${idx + 1}.</span>${q.text}</div>
+      <div class="options">
+        ${t.options.map((opt, i) => `
+          <button class="option-btn ${answers[idx] === i + 1 ? 'selected' : ''}" onclick="selectAnswer(${idx}, ${i + 1})">
+            <span class="score-badge">${i + 1}</span>${opt}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-prev').style.display = idx === 0 ? 'none' : 'inline-block';
+  document.getElementById('btn-prev').textContent = t.prev;
+
+  const isLast = idx === 10;
+  document.getElementById('btn-next').textContent = isLast ? t.submit : t.next;
+  document.getElementById('answer-indicator').textContent = '';
+  document.getElementById('answer-indicator').classList.remove('warn');
+}
+
+function selectAnswer(idx, val) {
+  answers[idx] = val;
+  renderQuestion(idx);
+}
+
+function nextQ() {
+  if (answers[currentQ] === null) {
+    const t = T[lang];
+    const ind = document.getElementById('answer-indicator');
+    ind.textContent = t.unanswered;
+    ind.classList.add('warn');
+    return;
+  }
+  if (currentQ === 10) {
+    showPage('page-results');
+    renderResults();
+  } else {
+    currentQ++;
+    renderQuestion(currentQ);
+  }
+}
+
+function prevQ() {
+  if (currentQ > 0) { currentQ--; renderQuestion(currentQ); }
+}
+
+function calcScores() {
+  const sa = SA_IDX.reduce((s, i) => s + (answers[i] || 0), 0);
+  const sd = SD_IDX.reduce((s, i) => s + (answers[i] || 0), 0);
+  const bal = BAL_IDX.reduce((s, i) => s + (answers[i] || 0), 0);
+  const saPct = (sa / 16) * 100;
+  const sdPct = (sd / 16) * 100;
+  const balPct = (bal / 12) * 100;
+  const gap = Math.abs(saPct - sdPct);
+  const isDiagonal = balPct >= 67 && gap < 15;
+  let quadrant;
+  if (isDiagonal) quadrant = 'DI';
+  else if (saPct < 50 && sdPct < 50) quadrant = 'Q1';
+  else if (saPct >= 50 && sdPct < 50) quadrant = 'Q2';
+  else if (saPct < 50 && sdPct >= 50) quadrant = 'Q3';
+  else quadrant = 'Q4';
+  return { sa, sd, bal, saPct, sdPct, balPct, gap, isDiagonal, quadrant };
+}
+
+function renderResults() {
+  const t = T[lang];
+  const r = t.results;
+  const sc = calcScores();
+  const container = document.getElementById('results-container');
+
+  const saLow = sc.saPct < 50;
+  const sdLow = sc.sdPct < 50;
+  const balLow = sc.balPct < 50;
+
+  // All 4 quadrant profile keys in display order
+  const profileOrder = ['Q1', 'Q2', 'Q3', 'Q4'];
+
+  container.innerHTML = `
+    <div class="results-header">
+      <div class="eyebrow" style="font-family:'Roboto',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">${r.resultsTitle}</div>
+    </div>
+
+    <div class="scores-grid">
+      <div class="score-card ${saLow ? 'warn' : 'highlight'}">
+        <div class="s-label">${r.saScore}</div>
+        <div class="s-value">${Math.round(sc.saPct)}%</div>
+        <div class="s-sub">${sc.sa} / 16</div>
+      </div>
+      <div class="score-card score-card--divider">
+        <div class="s-divider-line"></div>
+      </div>
+      <div class="score-card ${sdLow ? 'warn' : 'highlight'}">
+        <div class="s-label">${r.sdScore}</div>
+        <div class="s-value">${Math.round(sc.sdPct)}%</div>
+        <div class="s-sub">${sc.sd} / 16</div>
+      </div>
+      <div class="score-card score-card--divider">
+        <div class="s-divider-line"></div>
+      </div>
+      <div class="score-card ${balLow ? 'warn' : 'highlight'}">
+        <div class="s-label">${r.balScore}</div>
+        <div class="s-value">${Math.round(sc.balPct)}%</div>
+        <div class="s-sub">${sc.bal} / 12</div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">${r.chartTitle}</div>
+      <div class="chart-wrap">
+        <canvas id="quadrantChart" width="440" height="440"></canvas>
+      </div>
+    </div>
+
+    <div class="all-profiles-section">
+      <div class="all-profiles-label">${r.allProfiles}</div>
+      ${profileOrder.map(key => `
+        <div class="profile-card">
+          <div class="p-eyebrow">${r.definition}</div>
+          <h3>${r.profileNames[key]}</h3>
+          <p>${r.profileDefs[key]}</p>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="retake-row">
+      <button class="btn-retake" onclick="restartDiagnostic()">${r.retake}</button>
+    </div>
+  `;
+
+  drawChart(sc, r);
+}
+
+function restartDiagnostic() {
+  answers = new Array(11).fill(null);
+  currentQ = 0;
+  showPage('page-intro');
+  renderIntro();
+}
+
+function drawChart(sc, r) {
+  const canvas = document.getElementById('quadrantChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 54;
+  const chartW = W - pad * 2;
+  const chartH = H - pad * 2;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background quadrants
+  const qColors = ['#FEF3F2', '#EFF6FF', '#F0FDF4', '#FFFBEB'];
+  const quads = [
+    [pad, pad + chartH / 2, chartW / 2, chartH / 2],           // Q3: Low SA, High SD (top-left when SD is Y)
+    [pad + chartW / 2, pad + chartH / 2, chartW / 2, chartH / 2], // Q4: High SA, High SD
+    [pad, pad, chartW / 2, chartH / 2],                           // Q1: Low SA, Low SD
+    [pad + chartW / 2, pad, chartW / 2, chartH / 2]              // Q2: High SA, Low SD
+  ];
+  // Map: SD is Y-axis (up=high), SA is X-axis (right=high)
+  // Bottom-left = Low SA, Low SD = Q1
+  // Bottom-right = High SA, Low SD = Q2  
+  // Top-left = Low SA, High SD = Q3
+  // Top-right = High SA, High SD = Q4
+
+  const quadBg = ['#FEF3F2', '#FFF7ED', '#EFF6FF', '#F0FDF4'];
+  // BL, BR, TL, TR
+  const regions = [
+    { x: pad, y: pad + chartH / 2, w: chartW / 2, h: chartH / 2, color: '#FEF3F2' }, // BL Q1
+    { x: pad + chartW / 2, y: pad + chartH / 2, w: chartW / 2, h: chartH / 2, color: '#FFF7ED' }, // BR Q2
+    { x: pad, y: pad, w: chartW / 2, h: chartH / 2, color: '#EFF6FF' }, // TL Q3
+    { x: pad + chartW / 2, y: pad, w: chartW / 2, h: chartH / 2, color: '#F0FDF4' }, // TR Q4
+  ];
+
+  regions.forEach(reg => {
+    ctx.fillStyle = reg.color;
+    ctx.fillRect(reg.x, reg.y, reg.w, reg.h);
+  });
+
+  // Grid lines
+  ctx.strokeStyle = '#D1D5DB';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad + chartW / 2, pad);
+  ctx.lineTo(pad + chartW / 2, pad + chartH);
+  ctx.moveTo(pad, pad + chartH / 2);
+  ctx.lineTo(pad + chartW, pad + chartH / 2);
+  ctx.stroke();
+
+  // Border
+  ctx.strokeStyle = '#D1D5DB';
+  ctx.strokeRect(pad, pad, chartW, chartH);
+
+  // Diagonal line (dashed gold)
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = '#C9992A';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(pad, pad + chartH);
+  ctx.lineTo(pad + chartW, pad);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Quadrant labels
+  ctx.font = '11px Roboto, sans-serif';
+  ctx.fillStyle = '#9CA3AF';
+  ctx.textAlign = 'center';
+  const qlabels = r.quadrantLabels;
+  // BL
+  qlabels[0].split('\n').forEach((line, i) => ctx.fillText(line, pad + chartW * 0.25, pad + chartH * 0.75 + i * 14));
+  // BR
+  qlabels[1].split('\n').forEach((line, i) => ctx.fillText(line, pad + chartW * 0.75, pad + chartH * 0.75 + i * 14));
+  // TL
+  qlabels[2].split('\n').forEach((line, i) => ctx.fillText(line, pad + chartW * 0.25, pad + chartH * 0.25 + i * 14));
+  // TR
+  qlabels[3].split('\n').forEach((line, i) => ctx.fillText(line, pad + chartW * 0.75, pad + chartH * 0.25 + i * 14));
+
+  // Axis labels
+  ctx.fillStyle = '#1B2A4A';
+  ctx.font = 'bold 12px Poppins, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('→ ' + (lang === 'en' ? 'Self-Awareness' : 'Conscience de soi'), pad + chartW / 2, H - 10);
+  ctx.save();
+  ctx.translate(14, pad + chartH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText((lang === 'en' ? 'System Design' : 'Conception systémique') + ' →', 0, 0);
+  ctx.restore();
+
+  // Threshold labels
+  ctx.fillStyle = '#9CA3AF';
+  ctx.font = '10px Roboto';
+  ctx.textAlign = 'left';
+  ctx.fillText('50%', pad + chartW / 2 + 3, pad + chartH - 4);
+  ctx.textAlign = 'right';
+  ctx.fillText('50%', pad - 3, pad + chartH / 2 - 4);
+
+  // User dot
+  const dotX = pad + (sc.saPct / 100) * chartW;
+  const dotY = pad + chartH - (sc.sdPct / 100) * chartH;
+
+  // Shadow
+  ctx.shadowColor = 'rgba(0,0,0,0.25)';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.arc(dotX, dotY, 11, 0, Math.PI * 2);
+  ctx.fillStyle = sc.isDiagonal ? '#C9992A' : '#1B2A4A';
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.beginPath();
+  ctx.arc(dotX, dotY, 11, 0, Math.PI * 2);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Label dot
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px Poppins';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('▲', dotX, dotY);
+  ctx.textBaseline = 'alphabetic';
+
+  // Score labels near dot
+  const lblOffX = dotX + 16 > pad + chartW - 30 ? -40 : 16;
+  const lblOffY = dotY - 20 < pad + 10 ? 20 : -20;
+  ctx.fillStyle = '#1B2A4A';
+  ctx.font = 'bold 11px Roboto';
+  ctx.textAlign = 'left';
+  ctx.fillText(`SA: ${Math.round(sc.saPct)}%  SD: ${Math.round(sc.sdPct)}%`, dotX + lblOffX, dotY + lblOffY);
+}
+
+// Init
+renderIntro();
+</script>
+</body>
+</html>
