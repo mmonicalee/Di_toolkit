@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+<title>Decision Intelligence Diagnostic</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B2A4A;
+    --gold: #C9992A;
+    --neutral: #6B7280;
+    --bg: #FFFFFF;
+    --red: #C0392B;
+    --light-bg: #F8F9FB;
+    --border: #E5E7EB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  /* ── LANG TOGGLE ── */
+  .lang-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--navy);
+    padding: 10px 32px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+  }
+  .lang-btn {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.65);
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 5px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .lang-btn.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #fff;
+  }
+  .lang-btn:hover:not(.active) {
+    border-color: rgba(255,255,255,0.7);
+    color: #fff;
+  }
+
+  /* ── LAYOUT ── */
+  .page {
+    display: none;
+    min-height: 100vh;
+    padding-top: 56px;
+  }
+  .page.active { display: block; }
+
+  .container {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+
+  /* ── INTRO PAGE ── */
+  .intro-header {
+    text-align: center;
+    padding: 56px 0 40px;
+  }
+  .intro-header .eyebrow {
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .intro-header h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+  .intro-header h1 span { color: var(--gold); }
+
+  .intro-card {
+    background: var(--light-bg);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 12px 12px 0;
+    padding: 28px 32px;
+    margin: 32px 0;
+    font-size: 16px;
+    color: #374151;
+    line-height: 1.75;
+  }
+  .intro-card p + p { margin-top: 12px; }
+
+  .intro-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 28px 0 36px;
+  }
+  .meta-pill {
+    background: var(--light-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 15px;
+    color: var(--navy);
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+  }
+  .meta-pill strong {
+    display: block;
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 16px 40px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    text-align: center;
+  }
+  .btn-primary:hover { background: #243761; transform: translateY(-1px); }
+
+  /* ── QUESTIONNAIRE ── */
+  .q-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .q-header h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .progress-bar {
+    background: var(--border);
+    border-radius: 4px;
+    height: 6px;
+    margin: 20px 0;
+  }
+  .progress-fill {
+    background: var(--gold);
+    height: 6px;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-size: 14px;
+    color: var(--neutral);
+    text-align: right;
+    margin-bottom: 32px;
+  }
+
+  .axis-label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .question-card {
+    background: var(--light-bg);
+    border-radius: 12px;
+    padding: 28px 28px 24px;
+    margin-bottom: 24px;
+  }
+  .question-text {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--navy);
+    margin-bottom: 22px;
+    line-height: 1.6;
+  }
+  .q-num {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: var(--gold);
+    margin-right: 6px;
+  }
+
+  .options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  @media (min-width: 500px) {
+    .options { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .option-btn {
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 8px;
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    color: var(--navy);
+    transition: all 0.18s;
+    text-align: center;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  .option-btn .score-badge {
+    display: block;
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--neutral);
+    margin-bottom: 4px;
+  }
+  .option-btn:hover {
+    border-color: var(--gold);
+    background: #FDF8EE;
+  }
+  .option-btn.selected {
+    border-color: var(--navy);
+    background: var(--navy);
+    color: #fff;
+  }
+  .option-btn.selected .score-badge { color: var(--gold); }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+    gap: 16px;
+  }
+  .btn-secondary {
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--navy);
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 13px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-secondary:hover { border-color: var(--navy); }
+
+  .answered-indicator {
+    font-size: 14px;
+    color: var(--neutral);
+    text-align: center;
+    margin-top: 10px;
+  }
+  .answered-indicator.warn { color: var(--red); }
+
+  /* ── RESULTS ── */
+  .results-header {
+    text-align: center;
+    padding: 40px 0 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .results-header h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--navy);
+  }
+  .profile-name {
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 8px 0 4px;
+  }
+  .profile-zone-tag {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+
+  /* Scores row */
+  .scores-grid {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr 1px 1fr;
+    gap: 0;
+    margin-bottom: 36px;
+    background: var(--light-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .score-card {
+    background: transparent;
+    padding: 24px 16px;
+    text-align: center;
+    border-top: none;
+  }
+  .score-card.highlight { border-top: 3px solid var(--gold); }
+  .score-card.warn { border-top: 3px solid var(--red); }
+  .score-card--divider {
+    display: flex;
+    align-items: stretch;
+    padding: 16px 0;
+  }
+  .s-divider-line {
+    width: 1px;
+    background: var(--border);
+    flex: 1;
+  }
+  .score-card .s-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--neutral);
+    margin-bottom: 6px;
+  }
+  .score-card .s-value {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .score-card.warn .s-value { color: var(--red); }
+  .score-card .s-sub {
+    font-size: 13px;
+    color: var(--neutral);
+    margin-top: 4px;
+  }
+
+  /* Quadrant chart */
+  .chart-section {
+    margin-bottom: 36px;
+  }
+  .chart-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .chart-wrap {
+    position: relative;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  canvas#quadrantChart {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 10px;
+  }
+
+  /* Profile card */
+  .profile-card {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .profile-card .p-eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .profile-card h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .profile-card p {
+    font-size: 16px;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.88);
+  }
+
+  .impact-card {
+    background: var(--light-bg);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+  .impact-card .i-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .impact-card p {
+    font-size: 16px;
+    line-height: 1.75;
+    color: #374151;
+  }
+
+  .workshop-card {
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 28px;
+    margin-bottom: 36px;
+  }
+  .workshop-card .w-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--neutral);
+    margin-bottom: 6px;
+  }
+  .workshop-card p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--navy);
+  }
+
+  .retake-row {
+    text-align: center;
+    padding-bottom: 48px;
+  }
+  .btn-retake {
+    background: transparent;
+    border: 2px solid var(--navy);
+    color: var(--navy);
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 13px 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .btn-retake:hover { background: var(--navy); color: #fff; }
+
+  /* Diagonal badge */
+  .diagonal-banner {
+    background: linear-gradient(135deg, var(--gold) 0%, #e6b84a 100%);
+    color: var(--navy);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  /* ── RESULTS HEADER ── */
+  .results-header {
+    text-align: center;
+    padding: 36px 0 28px;
+  }
+
+  /* ── SCORES ROW ── */
+  .scores-grid {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr 1px 1fr;
+    gap: 0;
+    margin-bottom: 36px;
+    background: var(--light-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .score-card {
+    background: transparent;
+    padding: 22px 12px;
+    text-align: center;
+  }
+  .score-card.highlight { border-top: 3px solid var(--gold); }
+  .score-card.warn      { border-top: 3px solid var(--red); }
+  .score-card--divider  { display: flex; align-items: stretch; padding: 16px 0; }
+  .s-divider-line       { width: 1px; background: var(--border); flex: 1; }
+  .score-card .s-label  {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--neutral); margin-bottom: 6px;
+  }
+  .score-card .s-value  {
+    font-family: 'Poppins', sans-serif; font-size: 30px;
+    font-weight: 800; color: var(--navy); line-height: 1;
+  }
+  .score-card.warn .s-value { color: var(--red); }
+  .score-card .s-sub    { font-size: 12px; color: var(--neutral); margin-top: 4px; }
+
+  /* ── CHART ── */
+  .chart-section   { margin-bottom: 36px; }
+  .chart-title     {
+    font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;
+    color: var(--navy); margin-bottom: 14px; text-align: center;
+  }
+  .chart-wrap      { position: relative; max-width: 420px; margin: 0 auto; }
+  canvas#convergenceChart { width: 100% !important; height: auto !important; }
+
+  /* ── DIMENSION CARDS ── */
+  .dim-cards-section { display: flex; flex-direction: column; gap: 20px; margin-bottom: 28px; }
+  .dim-card {
+    border-radius: 12px; padding: 24px 26px;
+    background: var(--light-bg); border: 1px solid var(--border);
+    border-left: 5px solid var(--gold);
+  }
+  .dim-card--sa { border-left-color: var(--navy); }
+  .dim-card--ij { border-left-color: var(--gold); }
+  .dim-card--sd { border-left-color: #4B6CB7; }
+
+  .dim-card__header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .dim-card__eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--neutral); margin-bottom: 3px;
+  }
+  .dim-card__score {
+    font-family: 'Poppins', sans-serif; font-size: 30px;
+    font-weight: 800; color: var(--navy); line-height: 1;
+  }
+  .dim-card__score.low { color: var(--red); }
+  .dim-card__band {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 20px; margin-top: 6px;
+  }
+  .dim-card__band.low  { background: #FEF2F2; color: #B91C1C; }
+  .dim-card__band.mid  { background: #FFFBEB; color: #B45309; }
+  .dim-card__band.high { background: #F0FDF4; color: #15803D; }
+
+  .dim-card__body {
+    font-size: 15px; line-height: 1.75; color: #374151; margin-bottom: 14px;
+  }
+  .dim-card__impact-row {
+    font-size: 13px; color: var(--neutral); line-height: 1.6;
+    border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 14px;
+  }
+  .dim-card__impact-row strong { color: var(--navy); }
+
+  .dim-card__action {
+    background: #fff; border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 16px; font-size: 14px; line-height: 1.65; color: var(--navy);
+  }
+  .dim-card__action-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 5px;
+  }
+
+  /* ── SWEET SPOT CARD ── */
+  .sweet-spot-card {
+    background: var(--navy); color: #fff;
+    border-radius: 12px; padding: 28px 32px; margin-bottom: 36px;
+  }
+  .sweet-spot-label {
+    font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 14px;
+  }
+  .sweet-spot-card p {
+    font-size: 15px; line-height: 1.85; color: rgba(255,255,255,0.88);
+    margin-bottom: 10px;
+  }
+  .sweet-spot-card p:last-child { margin-bottom: 0; }
+  .sweet-spot-card ul {
+    margin: 10px 0 10px 4px; padding: 0; list-style: none;
+  }
+  .sweet-spot-card ul li {
+    font-size: 15px; line-height: 1.75; color: rgba(255,255,255,0.88);
+    padding: 4px 0; padding-left: 18px; position: relative;
+  }
+  .sweet-spot-card ul li::before {
+    content: '→'; position: absolute; left: 0;
+    color: var(--gold); font-weight: 700;
+  }
+
+  /* ── RETAKE ── */
+  .retake-row { text-align: center; padding-bottom: 48px; }
+  .btn-retake {
+    background: transparent; border: 2px solid var(--navy); color: var(--navy);
+    font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 600;
+    padding: 13px 32px; border-radius: 8px; cursor: pointer; transition: all 0.18s;
+  }
+  .btn-retake:hover { background: var(--navy); color: #fff; }
+
+  /* ── OTHER (kept for quiz page) ── */
+  .profile-card { background: var(--navy); color: #fff; border-radius: 12px; padding: 32px; margin-bottom: 24px; }
+  .profile-card .p-eyebrow { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .profile-card h3 { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 14px; }
+  .profile-card p  { font-size: 16px; line-height: 1.75; color: rgba(255,255,255,0.88); }
+  .all-profiles-section { margin-bottom: 36px; }
+  .all-profiles-label {
+    font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--neutral);
+    margin-bottom: 16px; margin-top: 36px;
+  }
+  .all-profiles-section .profile-card { margin-bottom: 16px; opacity: 0.82; }
+
+  @media print {
+    .lang-bar { display: none; }
+    .retake-row { display: none; }
+    .btn-primary, .btn-secondary { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Language toggle -->
+<div class="lang-bar">
+  <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+</div>
+
+<!-- INTRO PAGE -->
+<div class="page active" id="page-intro">
+  <div class="container">
+    <div class="intro-header">
+      <div class="eyebrow" id="t-eyebrow">Decision Intelligence</div>
+      <h1 id="t-title">How do you <span>make decisions?</span></h1>
+    </div>
+
+    <div class="intro-card" id="t-intro-card">
+      <p>This tool is grounded in research on how individuals and organizations make decisions — drawing from fields including cognitive science, organizational behaviour, and leadership development.</p>
+      <p>It is designed as a <strong>reflection instrument</strong>, not a clinical assessment. The results are intended to help you think more clearly about your decision-making patterns — where your strengths lie and where there may be room to grow.</p>
+      <p>The research behind Decision Intelligence is ongoing, and this diagnostic will continue to evolve. Use it as a starting point for honest conversation, not as a definitive verdict.</p>
+    </div>
+
+    <div class="intro-meta">
+      <div class="meta-pill"><strong id="t-meta-q">12</strong><span id="t-meta-qlabel">Questions</span></div>
+      <div class="meta-pill"><strong id="t-meta-t">~5</strong><span id="t-meta-tlabel">Minutes</span></div>
+      <div class="meta-pill"><strong id="t-meta-p">0</strong><span id="t-meta-plabel">Data Collected</span></div>
+    </div>
+
+    <div style="text-align:center;">
+      <button class="btn-primary" id="t-start-btn" onclick="startQuiz()">Begin the Diagnostic →</button>
+    </div>
+
+    <div id="t-privacy-note" style="margin-top:28px;padding:16px 20px;background:#F8F9FB;border:1px solid #E5E7EB;border-radius:8px;font-size:14px;color:#6B7280;line-height:1.65;text-align:center;"></div>
+  </div>
+</div>
+
+<!-- QUESTIONNAIRE PAGE -->
+<div class="page" id="page-quiz">
+  <div class="container">
+    <div class="q-header">
+      <h2 id="t-q-title">Answer honestly — there are no right or wrong answers.</h2>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-label"><span id="progress-text">0 / 12</span></div>
+    </div>
+    <div id="questions-container"></div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="btn-prev" onclick="prevQ()" style="display:none">← Back</button>
+      <button class="btn-primary" id="btn-next" onclick="nextQ()">Next →</button>
+    </div>
+    <div class="answered-indicator" id="answer-indicator"></div>
+  </div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div class="page" id="page-results">
+  <div class="container" id="results-container"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// ✏️  EDITOR GUIDE — SAFE TO EDIT ZONES
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// This file has two language blocks: T.en (English) and T.fr (French).
+// Both are structured identically. Edit text inside the quote marks only.
+//
+// SAFE TO EDIT — just change the text between the quotes:
+//   • eyebrow          — small label above the main title
+//   • title            — main heading (the <span>...</span> part turns gold)
+//   • introCard        — the intro disclaimer paragraphs (<p> tags are fine)
+//   • metaQlabel       — label under "12" pill  (e.g. "Questions")
+//   • metaTlabel       — label under "~5" pill  (e.g. "Minutes")
+//   • metaPlabel       — label under "0" pill   (e.g. "Data Collected")
+//   • startBtn         — text on the start button
+//   • qTitle           — instruction line above the questions
+//   • prev / next / submit — navigation button labels
+//   • unanswered       — warning shown when user clicks Next without answering
+//   • options          — the 4 answer labels: [Never, Rarely, Sometimes, Often]
+//   • questions        — the 12 questions (see detailed guide below)
+//   • results section  — all profile names, definitions, impacts, workshop text
+//
+// ⚠️  DO NOT EDIT — these control the logic, not the text:
+//   • Everything after the closing }; of the T object
+//   • The axis names inside questions must stay consistent (see note below)
+//   • The keys Q1, Q2, Q3, Q4, DI — these are score codes, not question numbers
+//
+// ── HOW TO EDIT A QUESTION ───────────────────────────────────────────────────
+// Each question looks like this:
+//   { axis: "Self-Awareness", text: "Your question text here." },
+//
+//   • "axis"  — the category label shown above the question card.
+//               EN values must be one of: "Self-Awareness", "System Design", "Integrative Judgment"
+//               FR values must be one of: "Conscience de soi", "Conception systémique", "Jugement intégratif"
+//               ⚠️ Do not change the axis value — only change the text value.
+//
+//   • "text"  — the question itself. Edit freely.
+//               The question order (Q1–Q12) must stay the same — do not add,
+//               remove, or reorder questions without sending to Claude first.
+//
+// ── HOW TO EDIT PROFILE TEXT ─────────────────────────────────────────────────
+// In the results section, each profile has three text fields:
+//   • profileDefs     — the definition paragraph (dark navy card)
+//   • profileImpacts  — the "In Practice" paragraph (gold-bordered card)
+//   • profileWorkshop — the development focus line (outlined card)
+//
+// Keys: Q1, Q2, Q3, Q4, DI — each maps to one profile.
+//   Q1 = "Decide First, Explain Later"
+//   Q2 = "The Reflective Individual"
+//   Q3 = "The Process Driver"
+//   Q4 = "The Intentional Leader"
+//   DI = "The DI Practitioner" (diagonal zone)
+//
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── TRANSLATIONS ──────────────────────────────────────────────────────────────
+const T = {
+  en: {
+    eyebrow: "Decision Intelligence",
+    title: "How do you <span>make decisions?</span>",
+    introCard: `<p>This tool is grounded in research on how individuals and organizations make decisions — drawing from fields including cognitive science, organizational behaviour, and leadership development.</p>
+      <p>It is designed as a <strong>reflection instrument</strong>, not a clinical assessment. The results are intended to help you think more clearly about your decision-making patterns — where your strengths lie and where there may be room to grow.</p>
+      <p>The research behind Decision Intelligence is ongoing, and this diagnostic will continue to evolve. Use it as a starting point for honest conversation, not as a definitive verdict.</p>`,
+    metaQ: "12", metaQlabel: "Questions",
+    metaT: "~5", metaTlabel: "Minutes",
+    metaP: "0", metaPlabel: "Data Collected",
+    startBtn: "Begin the Diagnostic →",
+    privacyNote: "This diagnostic does not collect, store, or transmit any personal information. All answers remain in your browser's memory only for the duration of your session and are cleared as soon as you close the page.",
+    qTitle: "Answer honestly — there are no right or wrong answers.",
+    prev: "← Back",
+    next: "Next →",
+    submit: "See My Results →",
+    unanswered: "Please select an answer to continue.",
+    options: ["Never", "Rarely", "Sometimes", "Often"],
+    axes: {
+      SA: "Self-Awareness",
+      SD: "System Design",
+      BAL: "Integrative Judgment"
+    },
+    // ✏️ QUESTIONS — Edit the "text" value freely. Do NOT change "axis" values.
+    // ⚠️ Keep all 12 questions in this exact order. Do not add or remove any.
+    questions: [
+      /* Q1  */ { axis: "System Design",        text: "Before entering a decision discussion, I explicitly clarify who has the final authority to decide." },
+      /* Q2  */ { axis: "Integrative Judgment",  text: "When divergent opinions pull the conversation off course, I can bring the group back to the shared goal, not by imposing direction, but by reconnecting people to what we are collectively trying to achieve." },
+      /* Q3  */ { axis: "Self-Awareness",        text: "Before deciding, I take the time to understand what drives perspectives different from my own." },
+      /* Q4  */ { axis: "Self-Awareness",        text: "When I feel pressure or frustration, I take a moment to check whether my emotions are influencing my immediate judgment." },
+      /* Q5  */ { axis: "Integrative Judgment",  text: "Before deciding, I can identify at least one key tradeoff associated with the decision." },
+      /* Q6  */ { axis: "System Design",         text: "When results are unsatisfactory, I analyze systemic or decision-related causes, rather than focusing on the people involved." },
+      /* Q7  */ { axis: "Integrative Judgment",  text: "When new information emerges, I can distinguish which decisions need adjusting from those that remain non-negotiable." },
+      /* Q8  */ { axis: "System Design",         text: "After an important decision, I ensure a structured review is conducted to compare results against the original intent." },
+      /* Q9  */ { axis: "Integrative Judgment",  text: "I can explain why a past decision did not produce the expected results, beyond simply describing what happened." },
+      /* Q10 */ { axis: "Self-Awareness",        text: "In situations of disagreement, I help the group identify the real point of divergence, rather than defending a position." },
+      /* Q11 */ { axis: "System Design",         text: "I put mechanisms in place to verify that decisions made are understood by the people concerned, at the right moment." },
+      /* Q12 */ { axis: "Integrative Judgment",  text: "I can link a current organizational problem to a specific decision made, delayed, or avoided." }
+    ],
+    results: {
+      resultsTitle: "Your Results",
+      resultsSubtitle: "Three dimensions. One goal: convergence.",
+      chartTitle: "Your Convergence Profile",
+      retake: "Retake the Diagnostic",
+      saScore: "Self-Awareness",
+      sdScore: "System Design",
+      balScore: "Integrative Judgment",
+
+      bandLabels: { low: "Developing", mid: "Active", high: "Strong" },
+
+      // ── SELF-AWARENESS ──
+      saBands: {
+        low:  "Self-awareness is an area to build. Decisions made without checking emotional state or bias tend to be less stable and harder to defend. The good news: small, consistent habits here produce outsized results.",
+        mid:  "Your self-awareness is developing. You check your state in some situations but not systematically. Building this into routine decision moments will meaningfully improve both your speed and the quality of your outcomes.",
+        high: "Your self-awareness is a real asset. You regulate your emotions, recognize your biases, and read group dynamics — which makes your decisions more grounded and your influence more credible."
+      },
+      saImpact: "<strong>Speed:</strong> Fewer reversals and emotional detours. <strong>Quality:</strong> Decisions less distorted by bias or reactive judgment. <strong>Performance:</strong> Higher trust from others, which accelerates alignment.",
+      saActions: {
+        low:  "Before your next important decision, name out loud the emotion you are currently feeling. Simply naming it interrupts the automatic response.",
+        mid:  "In your next disagreement, resist stating your position first. Ask one question to understand the other person's reasoning before responding.",
+        high: "Identify one recurring situation where others tend to defer to you. Deliberately create space for dissent before the decision is made."
+      },
+
+      // ── INTEGRATIVE JUDGMENT ──
+      ijBands: {
+        low:  "Integrative judgment is still developing. Decisions may tend toward either too much caution or premature closure. Naming tradeoffs explicitly — even imperfectly — is the first move.",
+        mid:  "Your integrative judgment is active. You can identify tradeoffs and adapt when new information arrives, but this may not yet be consistent across all decision types or under pressure.",
+        high: "Your integrative judgment is strong. You hold complexity without collapsing it prematurely, distinguish what is negotiable from what is not, and link present decisions to past outcomes — a rare and high-impact capability."
+      },
+      ijImpact: "<strong>Speed:</strong> Fewer deadlocks and circular debates. <strong>Quality:</strong> Decisions that account for real tradeoffs, not just preferred outcomes. <strong>Performance:</strong> Strategic coherence maintained over time.",
+      ijActions: {
+        low:  "Before your next decision, name one thing you would have to give up with each option on the table. Say it out loud or write it down.",
+        mid:  "When new information arrives that affects a decision in progress, explicitly state what changes and what stays firm — before the group moves forward.",
+        high: "After your next significant decision outcome, trace it back: what earlier decision or non-decision made this result more likely? Share that analysis with your team."
+      },
+
+      // ── SYSTEM DESIGN ──
+      sdBands: {
+        low:  "System design is an area to develop. Without clear decision rights, structured reviews, and shared understanding, even good individual judgment tends to get lost in execution. One structural change at a time.",
+        mid:  "Your system design instincts are active. You think about process and accountability, but this may not be applied consistently. Formalizing one practice at a time will produce durable gains.",
+        high: "Your system design capability is strong. You clarify who decides, build in structured reviews, and ensure decisions are actually understood by those who execute them — which is rarer than it should be."
+      },
+      sdImpact: "<strong>Speed:</strong> Clarity on decision ownership eliminates the most common source of delay. <strong>Quality:</strong> Structured post-decision reviews improve future decisions. <strong>Performance:</strong> Decisions that are understood get executed — those that aren't, don't.",
+      sdActions: {
+        low:  "In your next meeting where a decision needs to be made, ask one question before the discussion starts: who has the final call here?",
+        mid:  "Pick one recent decision that did not land as intended. Schedule a 20-minute structured review: what was the intent, what happened, what would you do differently?",
+        high: "Identify one decision process in your organization that relies entirely on one person's presence to function. Design a simple mechanism so it survives without them."
+      },
+
+      // ── SWEET SPOT ──
+      sweetSpotTitle: "The Convergence Zone",
+      sweetSpotIntro: "Decision Intelligence emerges when all three dimensions are active and in balance.",
+      sweetSpotBullets: [
+        "<strong>Self-Awareness</strong> prevents bias from distorting judgment.",
+        "<strong>Integrative Judgment</strong> prevents premature resolution of complexity.",
+        "<strong>System Design</strong> ensures good decisions survive individuals and scale across the organization."
+      ],
+      sweetSpotClose: "No single dimension is sufficient on its own. The goal of democratizing Decision Intelligence is to cultivate convergence at every level of the organization — not perfection in one area, but sustained, practiced development across all three, carried by individuals or supported by the collective.",
+      actionLabel: "Recommended Action"
+    }
+  }, // ← end of EN block
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 🇫🇷 FRENCH (CANADIAN) — Edit all text values below
+  // Structure is identical to EN above — same fields, same rules apply
+  // ═══════════════════════════════════════════════════════════════════════════
+  fr: {
+    eyebrow: "Intelligence Décisionnelle",
+    title: "Comment prenez-vous <span>vos décisions?</span>",
+    introCard: `<p>Cet outil s'appuie sur des recherches portant sur la façon dont les individus et les organisations prennent des décisions — en s'inspirant notamment des sciences cognitives, du comportement organisationnel et du développement du leadership.</p>
+      <p>Il est conçu comme un <strong>outil de réflexion</strong>, et non comme une évaluation clinique. Les résultats visent à vous aider à mieux comprendre vos habitudes décisionnelles — là où résident vos forces et là où il pourrait y avoir de la marge de croissance.</p>
+      <p>La recherche derrière l'Intelligence Décisionnelle est en cours, et ce diagnostic continuera d'évoluer. Utilisez-le comme point de départ pour une conversation honnête, et non comme un verdict définitif.</p>`,
+    metaQ: "12", metaQlabel: "Questions",
+    metaT: "~5", metaTlabel: "Minutes",
+    metaP: "0", metaPlabel: "Données collectées",
+    startBtn: "Commencer le diagnostic →",
+    privacyNote: "Ce diagnostic ne collecte, n'enregistre ni ne transmet aucune information personnelle. Toutes les réponses demeurent dans la mémoire de votre navigateur pour la durée de la session et sont effacées dès que vous fermez la page.",
+    qTitle: "Répondez honnêtement — il n'y a pas de bonnes ou de mauvaises réponses.",
+    prev: "← Retour",
+    next: "Suivant →",
+    submit: "Voir mes résultats →",
+    unanswered: "Veuillez sélectionner une réponse pour continuer.",
+    options: ["Jamais", "Rarement", "Parfois", "Souvent"],
+    axes: {
+      SA: "Conscience de soi",
+      SD: "Conception du système",
+      BAL: "Jugement intégratif"
+    },
+    // ✏️ QUESTIONS FR — Edit the "text" value freely. Do NOT change "axis" values.
+    // ⚠️ Keep all 12 questions in this exact order. Do not add or remove any.
+    questions: [
+      /* Q1  */ { axis: "Conception du système",  text: "Avant d'entamer une discussion décisionnelle, je clarifie explicitement qui a l'autorité finale pour décider." },
+      /* Q2  */ { axis: "Jugement intégratif",    text: "Lorsque les divergences font dérailler la conversation, je suis en mesure de ramener le groupe vers l'objectif commun, sans imposer une direction, mais en recentrant sur ce qui nous rassemble." },
+      /* Q3  */ { axis: "Conscience de soi",      text: "Avant de décider, je prends le temps de comprendre ce qui motive des perspectives différentes de la mienne." },
+      /* Q4  */ { axis: "Conscience de soi",      text: "Lorsque je ressens de la pression ou de la frustration, je prends un moment pour vérifier si mes émotions influencent mon jugement immédiat." },
+      /* Q5  */ { axis: "Jugement intégratif",    text: "Avant de trancher, je suis capable d'identifier au moins un compromis clé associé à la décision." },
+      /* Q6  */ { axis: "Conception du système",  text: "Lorsque les résultats sont insatisfaisants, j'analyse les causes systémiques ou décisionnelles, plutôt que de me limiter aux personnes impliquées." },
+      /* Q7  */ { axis: "Jugement intégratif",    text: "Lorsqu'une nouvelle information apparaît, je peux distinguer les décisions à ajuster de celles qui restent non négociables." },
+      /* Q8  */ { axis: "Conception du système",  text: "Après une décision importante, je m'assure qu'un retour structuré est réalisé pour comparer les résultats à l'intention initiale." },
+      /* Q9  */ { axis: "Jugement intégratif",    text: "Je suis capable d'expliquer pourquoi une décision passée n'a pas produit les résultats attendus, au-delà de la simple description des faits." },
+      /* Q10 */ { axis: "Conscience de soi",      text: "En situation de désaccord, j'aide le groupe à identifier le point réel de divergence, plutôt que de défendre une position." },
+      /* Q11 */ { axis: "Conception du système",  text: "Je mets en place des mécanismes pour vérifier que les décisions prises sont comprises par les personnes concernées, au moment opportun." },
+      /* Q12 */ { axis: "Jugement intégratif",    text: "Je peux relier un problème organisationnel actuel à une décision précise qu'on a prise, retardée ou évitée." }
+    ],
+    results: {
+      resultsTitle: "Vos résultats",
+      resultsSubtitle: "Trois dimensions. Un seul objectif : la convergence.",
+      chartTitle: "Votre profil de convergence",
+      retake: "Recommencer le diagnostic",
+      saScore: "Conscience de soi",
+      sdScore: "Conception du système",
+      balScore: "Jugement intégratif",
+
+      bandLabels: { low: "En développement", mid: "Actif", high: "Solide" },
+
+      saBands: {
+        low:  "La conscience de soi est une dimension à construire. Les décisions prises sans vérification de son état émotionnel ou de ses biais tendent à être moins stables et plus difficiles à défendre. Des habitudes simples et constantes ici génèrent des effets disproportionnés.",
+        mid:  "Votre conscience de soi est en développement. Vous vous vérifiez dans certaines situations, mais pas de façon systématique. Intégrer cette pratique aux moments décisionnels clés améliorera concrètement votre vitesse et la qualité de vos décisions.",
+        high: "Votre conscience de soi est un atout réel. Vous réglez vos émotions, reconnaissez vos biais et lisez les dynamiques de groupe, ce qui ancre vos décisions et renforce votre crédibilité d'influence."
+      },
+      saImpact: "<strong>Vitesse :</strong> Moins de revirements et de détours émotionnels. <strong>Qualité :</strong> Décisions moins distordues par les biais ou les réactions impulsives. <strong>Performance :</strong> Un climat de confiance qui accélère l'alignement collectif.",
+      saActions: {
+        low:  "Avant votre prochaine décision importante, nommez à voix haute l'émotion dominante que vous ressentez. Ce seul geste interrompt la réaction automatique.",
+        mid:  "Dans votre prochain désaccord, résistez à l'envie d'exprimer votre position en premier. Posez une question pour comprendre le raisonnement de l'autre avant de répondre.",
+        high: "Identifiez une situation récurrente où les autres vous suivent sans questionner. Créez délibérément un espace pour la dissidence avant que la décision soit prise."
+      },
+
+      ijBands: {
+        low:  "Le jugement intégratif est en construction. Les décisions tendent soit vers trop de prudence, soit vers une clôture prématurée. Nommer les compromis explicitement, même imparfaitement, est le premier pas.",
+        mid:  "Votre jugement intégratif est actif. Vous identifiez les compromis et vous adaptez face aux nouvelles informations, mais pas encore de façon constante sous pression ou dans tous les types de décisions.",
+        high: "Votre jugement intégratif est solide. Vous maintenez la complexité sans la réduire prématurément, distinguez ce qui est négociable de ce qui ne l'est pas, et reliez les décisions présentes aux résultats passés."
+      },
+      ijImpact: "<strong>Vitesse :</strong> Moins de blocages et de débats circulaires. <strong>Qualité :</strong> Décisions qui intègrent les vrais compromis. <strong>Performance :</strong> Cohérence stratégique maintenue dans le temps.",
+      ijActions: {
+        low:  "Avant votre prochaine décision, nommez un élément auquel vous devriez renoncer pour chaque option sur la table. Dites-le à voix haute ou écrivez-le.",
+        mid:  "Lorsqu'une nouvelle information affecte une décision en cours, énoncez explicitement ce qui change et ce qui demeure ferme, avant que le groupe avance.",
+        high: "Après votre prochain résultat décisionnel significatif, remontez la chaîne : quelle décision antérieure, ou non-décision, a rendu ce résultat plus probable? Partagez cette analyse avec votre équipe."
+      },
+
+      sdBands: {
+        low:  "La conception du système est une dimension à développer. Sans clarté sur les rôles décisionnels, les retours structurés et une compréhension partagée, même le meilleur jugement individuel se perd à l'exécution. Une seule pratique à la fois.",
+        mid:  "Vos réflexes de conception systémique sont actifs. Vous pensez au processus et à l'imputabilité, mais pas encore de façon constante. Formaliser une pratique à la fois produira des gains durables.",
+        high: "Votre capacité en conception du système est solide. Vous clarifiez qui décide, instaurez des retours structurés, et vérifiez que les décisions sont réellement comprises par ceux qui les exécutent."
+      },
+      sdImpact: "<strong>Vitesse :</strong> La clarté sur la propriété décisionnelle élimine la source de délai la plus fréquente. <strong>Qualité :</strong> Les retours structurés améliorent les décisions futures. <strong>Performance :</strong> Une décision comprise s'exécute. Une décision non comprise s'enlise.",
+      sdActions: {
+        low:  "Dans votre prochaine réunion où une décision doit être prise, posez une seule question avant que la discussion commence : qui a le dernier mot ici?",
+        mid:  "Choisissez une décision récente qui n'a pas produit les résultats escomptés. Planifiez une revue structurée de 20 minutes : quelle était l'intention, que s'est-il passé, que feriez-vous différemment?",
+        high: "Identifiez un processus décisionnel dans votre organisation qui repose entièrement sur la présence d'une seule personne. Concevez un mécanisme simple pour qu'il fonctionne sans elle."
+      },
+
+      sweetSpotTitle: "La zone de convergence",
+      sweetSpotIntro: "L'Intelligence Décisionnelle émerge lorsque les trois dimensions sont actives et en équilibre.",
+      sweetSpotBullets: [
+        "<strong>La conscience de soi</strong> empêche les biais de fausser le jugement.",
+        "<strong>Le jugement intégratif</strong> empêche la résolution prématurée de la complexité.",
+        "<strong>La conception du système</strong> fait en sorte que les bonnes décisions survivent aux individus et se déploient à l'échelle de l'organisation."
+      ],
+      sweetSpotClose: "Aucune dimension n'est suffisante à elle seule. L'objectif de démocratiser l'intelligence décisionnelle est de cultiver la convergence à tous les niveaux organisationnels. On ne cherche pas la perfection dans un seul domaine, mais un développement soutenu et pratiqué dans les trois — porté par les individus ou soutenu par la collectivité.",
+      actionLabel: "Action recommandée"
+    }
+  }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let lang = 'en';
+let answers = new Array(12).fill(null);
+let currentQ = 0;
+
+// Q indices mapped to axes (0-based, 12 questions total):
+// SA  = Q3, Q4, Q10       (idx 2, 3, 9)   — 3 questions, max 9
+// SD  = Q1, Q6, Q8, Q11   (idx 0, 5, 7, 10) — 4 questions, max 12
+// IJ  = Q2, Q5, Q7, Q9, Q12 (idx 1, 4, 6, 8, 11) — 5 questions, max 15
+const SA_IDX  = [2, 3, 9];
+const SD_IDX  = [0, 5, 7, 10];
+const BAL_IDX = [1, 4, 6, 8, 11];
+
+function setLang(l) {
+  lang = l;
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.getElementById('btn-fr').classList.toggle('active', l === 'fr');
+  document.documentElement.lang = l;
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const t = T[lang];
+  const page = getCurrentPage();
+  if (page === 'intro') renderIntro();
+  else if (page === 'quiz') renderQuestion(currentQ);
+  else if (page === 'results') renderResults();
+}
+
+function getCurrentPage() {
+  if (document.getElementById('page-intro').classList.contains('active')) return 'intro';
+  if (document.getElementById('page-quiz').classList.contains('active')) return 'quiz';
+  return 'results';
+}
+
+function renderIntro() {
+  const t = T[lang];
+  document.getElementById('t-eyebrow').textContent = t.eyebrow;
+  document.getElementById('t-title').innerHTML = t.title;
+  document.getElementById('t-intro-card').innerHTML = t.introCard;
+  document.getElementById('t-meta-qlabel').textContent = t.metaQlabel;
+  document.getElementById('t-meta-tlabel').textContent = t.metaTlabel;
+  document.getElementById('t-meta-plabel').textContent = t.metaPlabel;
+  document.getElementById('t-start-btn').textContent = t.startBtn;
+  document.getElementById('t-privacy-note').textContent = t.privacyNote;
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startQuiz() {
+  answers = new Array(12).fill(null);
+  currentQ = 0;
+  showPage('page-quiz');
+  renderQuestion(0);
+}
+
+function renderQuestion(idx) {
+  const t = T[lang];
+  const q = t.questions[idx];
+  document.getElementById('t-q-title').textContent = t.qTitle;
+
+  const fill = ((idx) / 12) * 100;
+  document.getElementById('progress-fill').style.width = fill + '%';
+  document.getElementById('progress-text').textContent = `${idx} / 12`;
+
+  const container = document.getElementById('questions-container');
+  container.innerHTML = `
+    <div class="axis-label">${q.axis}</div>
+    <div class="question-card">
+      <div class="question-text"><span class="q-num">Q${idx + 1}.</span>${q.text}</div>
+      <div class="options">
+        ${t.options.map((opt, i) => `
+          <button class="option-btn ${answers[idx] === i ? 'selected' : ''}" onclick="selectAnswer(${idx}, ${i})">
+            <span class="score-badge">${i}</span>${opt}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-prev').style.display = idx === 0 ? 'none' : 'inline-block';
+  document.getElementById('btn-prev').textContent = t.prev;
+
+  const isLast = idx === 11;
+  document.getElementById('btn-next').textContent = isLast ? t.submit : t.next;
+  document.getElementById('answer-indicator').textContent = '';
+  document.getElementById('answer-indicator').classList.remove('warn');
+}
+
+function selectAnswer(idx, val) {
+  answers[idx] = val;
+  renderQuestion(idx);
+}
+
+function nextQ() {
+  if (answers[currentQ] === null) {
+    const t = T[lang];
+    const ind = document.getElementById('answer-indicator');
+    ind.textContent = t.unanswered;
+    ind.classList.add('warn');
+    return;
+  }
+  if (currentQ === 11) {
+    showPage('page-results');
+    renderResults();
+  } else {
+    currentQ++;
+    renderQuestion(currentQ);
+  }
+}
+
+function prevQ() {
+  if (currentQ > 0) { currentQ--; renderQuestion(currentQ); }
+}
+
+function calcScores() {
+  const sa  = SA_IDX.reduce((s, i)  => s + (answers[i] ?? 0), 0);
+  const sd  = SD_IDX.reduce((s, i)  => s + (answers[i] ?? 0), 0);
+  const bal = BAL_IDX.reduce((s, i) => s + (answers[i] ?? 0), 0);
+  const saPct = (sa / 9) * 100;
+  const sdPct = (sd / 12) * 100;
+  const balPct = (bal / 15) * 100;
+  return { sa, sd, bal, saPct, sdPct, balPct };
+}
+
+function getBand(pct) {
+  if (pct <= 40) return 'low';
+  if (pct <= 70) return 'mid';
+  return 'high';
+}
+
+function renderResults() {
+  const t = T[lang];
+  const r = t.results;
+  const sc = calcScores();
+  const container = document.getElementById('results-container');
+
+  const saBand  = getBand(sc.saPct);
+  const ijBand  = getBand(sc.balPct);
+  const sdBand  = getBand(sc.sdPct);
+
+  function dimCard(cssClass, label, score, raw, max, band, bandLabels, bodyText, impactText, actionText, actionLabel) {
+    return `
+    <div class="dim-card ${cssClass}">
+      <div class="dim-card__header">
+        <div>
+          <div class="dim-card__eyebrow">${label}</div>
+          <div class="dim-card__score">${Math.round(score)}%</div>
+          <span class="dim-card__band ${band}">${bandLabels[band]}</span>
+        </div>
+        <div style="text-align:right;font-size:13px;color:var(--neutral);padding-top:4px;">${raw} / ${max}</div>
+      </div>
+      <p class="dim-card__body">${bodyText}</p>
+      <div class="dim-card__impact-row">${impactText}</div>
+      <div class="dim-card__action">
+        <div class="dim-card__action-label">${actionLabel}</div>
+        ${actionText}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = `
+    <div class="results-header">
+      <div style="font-size:12px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">${r.resultsTitle}</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;color:var(--navy);line-height:1.3;">${r.resultsSubtitle}</h2>
+    </div>
+
+    <div class="scores-grid">
+      <div class="score-card highlight">
+        <div class="s-label">${r.saScore}</div>
+        <div class="s-value">${Math.round(sc.saPct)}%</div>
+        <div class="s-sub">${sc.sa} / 9</div>
+      </div>
+      <div class="score-card score-card--divider"><div class="s-divider-line"></div></div>
+      <div class="score-card highlight">
+        <div class="s-label">${r.balScore}</div>
+        <div class="s-value">${Math.round(sc.balPct)}%</div>
+        <div class="s-sub">${sc.bal} / 15</div>
+      </div>
+      <div class="score-card score-card--divider"><div class="s-divider-line"></div></div>
+      <div class="score-card highlight">
+        <div class="s-label">${r.sdScore}</div>
+        <div class="s-value">${Math.round(sc.sdPct)}%</div>
+        <div class="s-sub">${sc.sd} / 12</div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">${r.chartTitle}</div>
+      <div class="chart-wrap">
+        <canvas id="convergenceChart" width="420" height="380"></canvas>
+      </div>
+    </div>
+
+    <div class="dim-cards-section">
+      ${dimCard('dim-card--sa', r.saScore,  sc.saPct,  sc.sa,  9,  saBand, r.bandLabels, r.saBands[saBand],  r.saImpact, r.saActions[saBand],  r.actionLabel)}
+      ${dimCard('dim-card--ij', r.balScore, sc.balPct, sc.bal, 15, ijBand, r.bandLabels, r.ijBands[ijBand],  r.ijImpact, r.ijActions[ijBand],  r.actionLabel)}
+      ${dimCard('dim-card--sd', r.sdScore,  sc.sdPct,  sc.sd,  12, sdBand, r.bandLabels, r.sdBands[sdBand],  r.sdImpact, r.sdActions[sdBand],  r.actionLabel)}
+    </div>
+
+    <div class="sweet-spot-card">
+      <div class="sweet-spot-label">◎ ${r.sweetSpotTitle}</div>
+      <p>${r.sweetSpotIntro}</p>
+      <ul>
+        ${r.sweetSpotBullets.map(b => `<li>${b}</li>`).join('')}
+      </ul>
+      <p>${r.sweetSpotClose}</p>
+    </div>
+
+    <div class="retake-row">
+      <button class="btn-retake" onclick="restartDiagnostic()">${r.retake}</button>
+    </div>
+  `;
+
+  drawConvergenceChart(sc, r);
+}
+
+function restartDiagnostic() {
+  answers = new Array(12).fill(null);
+  currentQ = 0;
+  showPage('page-intro');
+  renderIntro();
+}
+
+function drawConvergenceChart(sc, r) {
+  const canvas = document.getElementById('convergenceChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // ── GEOMETRY ────────────────────────────────────────────────────────────
+  // Convergence point = top-right.
+  // SA  starts far-left at same Y as convPt  → travels horizontally right  (0°)
+  // SD  starts directly below convPt         → travels straight up          (90°)
+  // IJ  starts bottom-left corner            → travels diagonally           (45°)
+  // SA and SD form a perfect 90° angle. IJ bisects exactly between them.
+  // All three lines END at the SAME convergence point.
+
+  const pad  = { top: 52, right: 70, bottom: 68, left: 22 };
+  const convX = W - pad.right;
+  const convY = pad.top;
+  const convPt = { x: convX, y: convY };
+
+  // SA: starts at left edge, same height as convPt (horizontal line)
+  const saStart = { x: pad.left, y: convY };
+  // SD: starts directly below convPt at bottom (vertical line)
+  const sdStart = { x: convX, y: H - pad.bottom };
+  // IJ: starts at bottom-left corner (true 45° diagonal to convPt)
+  const ijStart = { x: pad.left, y: H - pad.bottom };
+
+  // ── FULL LINES ──────────────────────────────────────────────────────────
+  function line(from, to) {
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.strokeStyle = '#D1D5DB';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.stroke();
+  }
+
+  line(saStart, convPt);
+  line(sdStart, convPt);
+  line(ijStart, convPt);
+
+  // ── CONVERGENCE GOAL CIRCLE ─────────────────────────────────────────────
+  const goalR = 26;
+  const grad = ctx.createRadialGradient(convX, convY, 3, convX, convY, goalR);
+  grad.addColorStop(0, 'rgba(201,153,42,0.65)');
+  grad.addColorStop(1, 'rgba(201,153,42,0.05)');
+  ctx.beginPath();
+  ctx.arc(convX, convY, goalR, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(convX, convY, goalR, 0, Math.PI * 2);
+  ctx.strokeStyle = '#C9992A';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.font = 'bold 11px Poppins, sans-serif';
+  ctx.fillStyle = '#C9992A';
+  ctx.textAlign = 'center';
+  ctx.fillText('Convergence', convX, convY - goalR - 6);
+
+  // ── DOT POSITIONS ────────────────────────────────────────────────────────
+  function lerp(a, b, t) {
+    return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+  }
+
+  const saDot = lerp(saStart, convPt, sc.saPct  / 100);
+  const sdDot = lerp(sdStart, convPt, sc.sdPct  / 100);
+  const ijDot = lerp(ijStart, convPt, sc.balPct / 100);
+
+  function dot(p, fill) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 9, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 9, 0, Math.PI * 2);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  dot(saDot, '#1B2A4A');  // SA — navy
+  dot(ijDot, '#C9992A');  // IJ — gold
+  dot(sdDot, '#4B6CB7');  // SD — blue
+
+  // ── LABELS ──────────────────────────────────────────────────────────────
+  const saLabel = lang === 'en' ? 'Self-Awareness'       : 'Conscience de soi';
+  const ijLabel = lang === 'en' ? 'Integrative Judgment' : 'Jugement intégratif';
+  const sdLabel = lang === 'en' ? 'System Design'        : 'Conception du système';
+
+  // SA — horizontal, label below the left start
+  ctx.font = 'bold 12px Poppins, sans-serif';
+  ctx.fillStyle = '#1B2A4A';
+  ctx.textAlign = 'left';
+  ctx.fillText(saLabel, saStart.x, saStart.y + 20);
+  ctx.font = '11px Roboto, sans-serif';
+  ctx.fillStyle = '#C9992A';
+  ctx.fillText(Math.round(sc.saPct) + '%', saStart.x, saStart.y + 34);
+
+  // SD — vertical, label rotated alongside the right side
+  ctx.save();
+  ctx.translate(sdStart.x + 20, sdStart.y - 4);
+  ctx.rotate(-Math.PI / 2);
+  ctx.font = 'bold 12px Poppins, sans-serif';
+  ctx.fillStyle = '#1B2A4A';
+  ctx.textAlign = 'left';
+  ctx.fillText(sdLabel, 0, 0);
+  ctx.font = '11px Roboto, sans-serif';
+  ctx.fillStyle = '#C9992A';
+  ctx.fillText(Math.round(sc.sdPct) + '%', 0, 14);
+  ctx.restore();
+
+  // IJ — diagonal, label rotated along line angle, offset below line
+  const ijAngle = Math.atan2(convY - ijStart.y, convX - ijStart.x);
+  ctx.save();
+  ctx.translate(ijStart.x + 14, ijStart.y - 14);
+  ctx.rotate(ijAngle);
+  ctx.font = 'bold 12px Poppins, sans-serif';
+  ctx.fillStyle = '#1B2A4A';
+  ctx.textAlign = 'left';
+  ctx.fillText(ijLabel, 0, 0);
+  ctx.font = '11px Roboto, sans-serif';
+  ctx.fillStyle = '#C9992A';
+  ctx.fillText(Math.round(sc.balPct) + '%', 0, 14);
+  ctx.restore();
+}
+
+// Init
+renderIntro();
+</script>
+</body>
+</html>
